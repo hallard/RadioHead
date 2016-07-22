@@ -8,8 +8,10 @@
 // Interrupt vectors for the 3 Arduino interrupt pins
 // Each interrupt can be handled by a different instance of RH_RF69, allowing you to have
 // 2 or more RF69s per Arduino
+#ifndef RH_RF69_IRQLESS
 RH_RF69* RH_RF69::_deviceForInterrupt[RH_RF69_NUM_INTERRUPTS] = {0, 0, 0};
 uint8_t RH_RF69::_interruptCount = 0; // Index into _deviceForInterrupt for next device
+#endif
 
 // These are indexed by the values of ModemConfigChoice
 // Stored in flash (program) memory to save SRAM
@@ -44,6 +46,10 @@ PROGMEM static const RH_RF69::ModemConfig MODEM_CONFIG_TABLE[] =
     { CONFIG_FSK,  0x01, 0x00, 0x08, 0x00, 0xe1, 0xe1, CONFIG_WHITE}, // FSK_Rb125Fd125
     { CONFIG_FSK,  0x00, 0x80, 0x10, 0x00, 0xe0, 0xe0, CONFIG_WHITE}, // FSK_Rb250Fd250
     { CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0x42, CONFIG_WHITE}, // FSK_Rb55555Fd50 
+
+    // MOTEINO
+    // REGAFCBW set to default 0x8A, No DC-free encoding/decoding performed
+    { CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0x8A, CONFIG_NOWHITE}, // FSK_MOTEINO
 
     //  02,        03,   04,   05,   06,   19,   1a,  37
     // GFSK (BT=1.0), No Manchester, whitening, CRC, no address filtering
@@ -87,9 +93,11 @@ RH_RF69::RH_RF69(uint8_t slaveSelectPin, uint8_t interruptPin, RHGenericSPI& spi
     :
     RHSPIDriver(slaveSelectPin, spi)
 {
+    #ifndef RH_RF69_IRQLESS
     _interruptPin = interruptPin;
-    _idleMode = RH_RF69_OPMODE_MODE_STDBY;
     _myInterruptIndex = 0xff; // Not allocated yet
+    #endif
+    _idleMode = RH_RF69_OPMODE_MODE_STDBY;
 }
 
 void RH_RF69::setIdleMode(uint8_t idleMode)
@@ -97,23 +105,44 @@ void RH_RF69::setIdleMode(uint8_t idleMode)
     _idleMode = idleMode;
 }
 
-bool RH_RF69::init()
+// Set configuration to be moteino compatible
+void RH_RF69::setConfigMoteino()
+{
+    setModemConfig(FSK_MOTEINO);
+    setPreambleLength(3);
+    spiWrite(RH_RF69_REG_29_RSSITHRESH, 220);
+    spiWrite(RH_RF69_REG_3D_PACKETCONFIG2, RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_2BITS | RH_RF69_PACKETCONFIG2_AUTORXRESTARTON);
+    // default moteino Frequency For 433 MHz 
+    setFrequency(433.0);
+
+    // Moteino default network ID is 1
+    uint8_t syncwords[] = { 0x2d, 1 };
+    setSyncWords(syncwords, sizeof(syncwords)); 
+    //spiWrite(RH_RF69_REG_07_FRFMSB, 0x6C);
+    //spiWrite(RH_RF69_REG_08_FRFMID, 0x40);
+    //spiWrite(RH_RF69_REG_09_FRFLSB, 0x00);
+}
+
+bool RH_RF69::init(void)
 {
     if (!RHSPIDriver::init())
 	return false;
 
+    #ifndef RH_RF69_IRQLESS
     // Determine the interrupt number that corresponds to the interruptPin
     int interruptNumber = digitalPinToInterrupt(_interruptPin);
     if (interruptNumber == NOT_AN_INTERRUPT)
 	return false;
+    #endif
 
     // Get the device type and check it
     // This also tests whether we are really connected to a device
     // My test devices return 0x24
-    _deviceType = spiRead(RH_RF69_REG_10_VERSION);
-    if (_deviceType == 00 ||
-	_deviceType == 0xff)
-	return false;
+  _deviceType = spiRead(RH_RF69_REG_10_VERSION);
+  if (_deviceType == 00 || _deviceType == 0xff)
+	 return false;
+
+    #ifndef RH_RF69_IRQLESS
 
     // Add by Adrien van den Bossche <vandenbo@univ-tlse2.fr> for Teensy
     // ARM M4 requires the below. else pin interrupt doesn't work properly.
@@ -144,6 +173,7 @@ bool RH_RF69::init()
     else
 	return false; // Too many devices, not enough interrupt vectors
 
+    #endif
     setModeIdle();
 
     // Configure important RH_RF69 registers
@@ -172,7 +202,6 @@ bool RH_RF69::init()
     // Set up default configuration
     uint8_t syncwords[] = { 0x2d, 0xd4 };
     setSyncWords(syncwords, sizeof(syncwords)); // Same as RF22's
-    // Reasonably fast and reliable default speed and modulation
     setModemConfig(GFSK_Rb250Fd250);
 
     // 3 would be sufficient, but this is the same as RF22's
@@ -184,6 +213,9 @@ bool RH_RF69::init()
     // +13dBm, same as power-on default
     setTxPower(13); 
 
+    // override and set config to moteino
+    setConfigMoteino();
+
     return true;
 }
 
@@ -191,16 +223,17 @@ bool RH_RF69::init()
 // RH_RF69 is unusual in Mthat it has several interrupt lines, and not a single, combined one.
 // On Moteino, only one of the several interrupt lines (DI0) from the RH_RF69 is connnected to the processor.
 // We use this to get PACKETSDENT and PAYLOADRADY interrupts.
+#ifndef RH_RF69_IRQLESS
 void RH_RF69::handleInterrupt()
 {
     // Get the interrupt cause
     uint8_t irqflags2 = spiRead(RH_RF69_REG_28_IRQFLAGS2);
     if (_mode == RHModeTx && (irqflags2 & RH_RF69_IRQFLAGS2_PACKETSENT))
     {
+ //  Serial.println("PACKETSENT");
 	// A transmitter message has been fully sent
 	setModeIdle(); // Clears FIFO
 	_txGood++;
-//	Serial.println("PACKETSENT");
     }
     // Must look for PAYLOADREADY, not CRCOK, since only PAYLOADREADY occurs _after_ AES decryption
     // has been done
@@ -210,12 +243,14 @@ void RH_RF69::handleInterrupt()
 	_lastRssi = -((int8_t)(spiRead(RH_RF69_REG_24_RSSIVALUE) >> 1));
 	_lastPreambleTime = millis();
 
+//  Serial.println("PAYLOADREADY");
 	setModeIdle();
+
 	// Save it in our buffer
 	readFifo();
-//	Serial.println("PAYLOADREADY");
     }
 }
+#endif
 
 // Low level function reads the FIFO and checks the address
 // Caution: since we put our headers in what the RH_RF69 considers to be the payload, if encryption is enabled
@@ -231,18 +266,20 @@ void RH_RF69::readFifo()
 	payloadlen >= RH_RF69_HEADER_LEN)
     {
 	_rxHeaderTo = _spi.transfer(0);
-	// Check addressing
+    // Check addressing
 	if (_promiscuous ||
 	    _rxHeaderTo == _thisAddress ||
 	    _rxHeaderTo == RH_BROADCAST_ADDRESS)
 	{
 	    // Get the rest of the headers
 	    _rxHeaderFrom  = _spi.transfer(0);
-	    _rxHeaderId    = _spi.transfer(0);
+        _rxHeaderId    = _spi.transfer(0);
 	    _rxHeaderFlags = _spi.transfer(0);
+
 	    // And now the real payload
 	    for (_bufLen = 0; _bufLen < (payloadlen - RH_RF69_HEADER_LEN); _bufLen++)
-		_buf[_bufLen] = _spi.transfer(0);
+            _buf[_bufLen] = _spi.transfer(0);
+
 	    _rxGood++;
 	    _rxBufValid = true;
 	}
@@ -255,6 +292,7 @@ void RH_RF69::readFifo()
 // These are low level functions that call the interrupt handler for the correct
 // instance of RH_RF69.
 // 3 interrupts allows us to have 3 different devices
+#ifndef RH_RF69_IRQLESS
 void RH_RF69::isr0()
 {
     if (_deviceForInterrupt[0])
@@ -270,6 +308,7 @@ void RH_RF69::isr2()
     if (_deviceForInterrupt[2])
 	_deviceForInterrupt[2]->handleInterrupt();
 }
+#endif
 
 int8_t RH_RF69::temperatureRead()
 {
@@ -307,6 +346,17 @@ int8_t RH_RF69::rssiRead()
 
 void RH_RF69::setOpMode(uint8_t mode)
 {
+  /*
+  Serial.print("\r\nsetOpMode ");
+  if (mode & 0x40) Serial.print(" ListOn");
+  if (mode & 0x20) Serial.print(" ListAbrt");
+  if ((mode & 0x1C) == 0x00) Serial.print(" Sleep");
+  if ((mode & 0x1C) == 0x04) Serial.print(" Standby");
+  if ((mode & 0x1C) == 0x08) Serial.print(" FS");
+  if ((mode & 0x1C) == 0x0C) Serial.print(" TX");
+  if ((mode & 0x1C) == 0x10) Serial.print(" RX");
+*/
+
     uint8_t opmode = spiRead(RH_RF69_REG_01_OPMODE);
     opmode &= ~RH_RF69_OPMODE_MODE;
     opmode |= (mode & RH_RF69_OPMODE_MODE);
@@ -369,6 +419,12 @@ void RH_RF69::setModeTx()
 	    spiWrite(RH_RF69_REG_5A_TESTPA1, RH_RF69_TESTPA1_BOOST);
 	    spiWrite(RH_RF69_REG_5C_TESTPA2, RH_RF69_TESTPA2_BOOST);
 	}
+
+/*
+  Serial.print(" 5A_PA1=0x");  Serial.print(spiRead(RH_RF69_REG_5A_TESTPA1),HEX);
+  Serial.print(" 5C_PA2=0x");  Serial.print(spiRead(RH_RF69_REG_5C_TESTPA2),HEX);
+  Serial.print(" TxPower=0x"); Serial.println(spiRead(RH_RF69_REG_11_PALEVEL),HEX);
+*/
 	spiWrite(RH_RF69_REG_25_DIOMAPPING1, RH_RF69_DIOMAPPING1_DIO0MAPPING_00); // Set interrupt line 0 PacketSent
 	setOpMode(RH_RF69_OPMODE_MODE_TX); // Clears FIFO
 	_mode = RHModeTx;
@@ -428,6 +484,15 @@ bool RH_RF69::setModemConfig(ModemConfigChoice index)
     return true;
 }
 
+bool RH_RF69::getModemConfig(ModemConfigChoice index, ModemConfig* config)
+{
+  if (index > (signed int)(sizeof(MODEM_CONFIG_TABLE) / sizeof(ModemConfig)))
+    return false;
+
+  memcpy_P(config, &MODEM_CONFIG_TABLE[index], sizeof(RH_RF69::ModemConfig));
+
+  return true;
+}
 void RH_RF69::setPreambleLength(uint16_t bytes)
 {
     spiWrite(RH_RF69_REG_2C_PREAMBLEMSB, bytes >> 8);
@@ -464,10 +529,31 @@ void RH_RF69::setEncryptionKey(uint8_t* key)
 
 bool RH_RF69::available()
 {
-    if (_mode == RHModeTx)
-	return false;
-    setModeRx(); // Make sure we are receiving
-    return _rxBufValid;
+  #ifdef RH_RF69_IRQLESS
+    // Must look for PAYLOADREADY, not CRCOK, since only PAYLOADREADY occurs _after_ AES decryption
+    // has been done
+
+    // Get the interrupt state
+    uint8_t irqflags2 = spiRead(RH_RF69_REG_28_IRQFLAGS2);
+
+    if (_mode == RHModeRx && (irqflags2 & RH_RF69_IRQFLAGS2_PAYLOADREADY))
+    {
+    // A complete message has been received with good CRC
+    _lastRssi = -((int8_t)(spiRead(RH_RF69_REG_24_RSSIVALUE) >> 1));
+    _lastPreambleTime = millis();
+
+    setModeIdle();
+
+    // Save it in our buffer
+    readFifo();
+    }
+  #endif
+
+  if (_mode == RHModeTx)
+  	return false;
+
+  setModeRx(); // Make sure we are receiving
+  return _rxBufValid;
 }
 
 bool RH_RF69::recv(uint8_t* buf, uint8_t* len)
@@ -507,13 +593,32 @@ bool RH_RF69::send(const uint8_t* data, uint8_t len)
     _spi.transfer(_txHeaderFlags);
     // Now the payload
     while (len--)
-	_spi.transfer(*data++);
+      _spi.transfer(*data++);
     digitalWrite(_slaveSelectPin, HIGH);
     ATOMIC_BLOCK_END;
 
     setModeTx(); // Start the transmitter
     return true;
 }
+
+#ifdef RH_RF69_IRQLESS
+bool RH_RF69::waitPacketSent()
+{
+    // If we are not currently in transmit mode, there is no packet to wait for
+    if (_mode != RHModeTx)
+    return false;
+
+    while (!(spiRead(RH_RF69_REG_28_IRQFLAGS2) & RH_RF69_IRQFLAGS2_PACKETSENT)){
+      YIELD;
+    }
+
+    // A transmitter message has been fully sent
+    setModeIdle(); // Clears FIFO
+    _txGood++;
+    return true;
+}
+#endif
+
 
 uint8_t RH_RF69::maxMessageLength()
 {
