@@ -547,6 +547,7 @@
 #define RH_PLATFORM_STM32F4_HAL      8 
 #define RH_PLATFORM_RASPI            9
 #define RH_PLATFORM_NRF51            10
+#define RH_PLATFORM_PARTICLE         11
 
 ////////////////////////////////////////////////////
 // Select platform automatically, if possible
@@ -557,6 +558,8 @@
   #define RH_PLATFORM RH_PLATFORM_NRF51
  #elif defined(ARDUINO)
   #define RH_PLATFORM RH_PLATFORM_ARDUINO
+ #elif defined(SPARK)
+  #define RH_PLATFORM RH_PLATFORM_PARTICLE
  #elif defined(__MSP430G2452__) || defined(__MSP430G2553__)
   #define RH_PLATFORM RH_PLATFORM_MSP430
  #elif defined(MCU_STM32F103RE)
@@ -594,6 +597,14 @@
   #define RH_HAVE_SERIAL
  #endif
 
+#elif (RH_PLATFORM == RH_PLATFORM_PARTICLE)
+  #include "application.h"
+  #define RH_HAVE_HARDWARE_SPI
+  #define RH_HAVE_SERIAL
+  #define PROGMEM
+  #define memcpy_P memcpy
+  #include "math.h"
+  
 #elif (RH_PLATFORM == RH_PLATFORM_MSP430) // LaunchPad specific
  #include "legacymsp430.h"
  #include "Energia.h"
@@ -624,7 +635,7 @@
 
 #elif (RH_PLATFORM == RH_PLATFORM_STM32STD) // STM32 with STM32F4xx_StdPeriph_Driver 
  #include <stm32f4xx.h>
- #include <wirish.h>	
+ #include <wirish.h>
  #include <stdint.h>
  #include <string.h>
  #include <math.h>
@@ -678,6 +689,7 @@
 ////////////////////////////////////////////////////
 // This is an attempt to make a portable atomic block
 #if (RH_PLATFORM == RH_PLATFORM_ARDUINO)
+#ifndef ESP8266
 #if defined(__arm__)
   #include <RHutil/atomic.h>
  #else
@@ -685,6 +697,14 @@
  #endif
  #define ATOMIC_BLOCK_START     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
  #define ATOMIC_BLOCK_END }
+#else
+// If you want to pool instead wiring and check RF69 DIO0 pin
+// uncomment to define the following line
+//#define RH_RF69_IRQLESS
+#define ATOMIC_BLOCK_START
+#define ATOMIC_BLOCK_END
+#endif
+
 #elif (RH_PLATFORM == RH_PLATFORM_UNO32)
  #include <peripheral/int.h>
  #define ATOMIC_BLOCK_START unsigned int __status = INTDisableInterrupts(); {
