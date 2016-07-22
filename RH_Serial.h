@@ -1,7 +1,7 @@
 // RH_Serial.h
 //
 // Copyright (C) 2014 Mike McCauley
-// $Id: RH_Serial.h,v 1.9 2015/08/13 02:45:47 mikem Exp mikem $
+// $Id: RH_Serial.h,v 1.11 2016/04/04 01:40:12 mikem Exp $
 
 // Works with any serial port. Tested with Arduino Mega connected to Serial1
 // Also works with 3DR Radio V1.3 Telemetry kit (serial at 57600baud)
@@ -31,6 +31,10 @@
 // the one byte payload length is not encrpyted
 #ifndef RH_SERIAL_MAX_MESSAGE_LEN
 #define RH_SERIAL_MAX_MESSAGE_LEN (RH_SERIAL_MAX_PAYLOAD_LEN - RH_SERIAL_HEADER_LEN)
+#endif
+
+#if (RH_PLATFORM == RH_PLATFORM_STM32F2)
+ #define HardwareSerial USARTSerial
 #endif
 
 class HardwareSerial;
@@ -249,5 +253,6 @@ protected:
 
 /// @example serial_reliable_datagram_client.pde
 /// @example serial_reliable_datagram_server.pde
+/// @example serial_gateway.pde
 
 #endif

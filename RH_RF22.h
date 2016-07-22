@@ -1,7 +1,7 @@
 // RH_RF22.h
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2011 Mike McCauley
-// $Id: RH_RF22.h,v 1.27 2015/05/17 00:11:26 mikem Exp $
+// $Id: RH_RF22.h,v 1.30 2016/07/07 00:02:53 mikem Exp mikem $
 //
 
 #ifndef RH_RF22_h
@@ -460,7 +460,7 @@
 ///    - Device Type Code = 0x08 (RX/TRX)
 ///    - Version Code = 0x06
 /// Works on Duo. Works with Sparkfun RFM22 Wireless shields. Works with RFM22 modules from http://www.hoperfusa.com/
-/// Works with Arduino 1.0 to at least 1.0.5. Works on Maple, Flymaple, Uno32.
+/// Works with Arduino 1.0 to at least 1.0.5. Works on Maple, Flymaple, Uno32 (with ChipKIT Core with Arduino IDE).
 ///
 /// \par Packet Format
 ///
@@ -560,6 +560,26 @@
 ///                           /--GPIO1 (GPIO1 out to control receiver antenna RX_ANT)
 ///                           \--RX_ANT (RX antenna control in) RFM22B only
 /// \endcode
+/// For an Arduino Due (the SPI pins do not come out on the Digital pins as for normal Arduino, but only
+/// appear on the SPI header)
+/// \code
+///                 Due      RFM-22B
+///                 GND----------GND-\ (ground in)
+///                              SDN-/ (shutdown in)
+///                 5V-----------VCC   (5V in)
+/// interrupt 0 pin D2-----------NIRQ  (interrupt request out)
+///          SS pin D10----------NSEL  (chip select in)
+///       SCK SPI pin 3----------SCK   (SPI clock in)
+///      MOSI SPI pin 4----------SDI   (SPI Data in)
+///      MISO SPI pin 1----------SDO   (SPI data out)
+///                           /--GPIO0 (GPIO0 out to control transmitter antenna TX_ANT)
+///                           \--TX_ANT (TX antenna control in) RFM22B only
+///                           /--GPIO1 (GPIO1 out to control receiver antenna RX_ANT)
+///                           \--RX_ANT (RX antenna control in) RFM22B only
+/// \endcode
+/// and use the default constructor:
+/// RH_RF22 driver;
+
 /// For connecting an Arduino to an RFM23BP module. Note that the antenna control pins are reversed 
 /// compared to the RF22.
 /// \code
@@ -584,6 +604,13 @@
 /// Arduino (D10 for Diecimila, Uno etc and D53 for Mega)
 /// or the interrupt request to other than pin D2 (Caution, different processors have different constraints as to the 
 /// pins available for interrupts).
+///
+/// If you have an Arduino Zero, you should note that you cannot use Pin 2 for the interrupt line 
+/// (Pin 2 is for the NMI only), instead you can use any other pin (we use Pin 3) and initialise RH_RF69 like this:
+/// \code
+/// // Slave Select is pin 10, interrupt is Pin 3
+/// RH_RF22 driver(10, 3);
+/// \endcode
 ///
 /// It is possible to have 2 radios connected to one Arduino, provided each radio has its own 
 /// SS and interrupt line (SCK, SDI and SDO are common to both radios)

@@ -1,7 +1,7 @@
-// RH_RF22.cpp
+// RH_RF95.cpp
 //
 // Copyright (C) 2011 Mike McCauley
-// $Id: RH_RF95.cpp,v 1.8 2015/08/12 23:18:51 mikem Exp $
+// $Id: RH_RF95.cpp,v 1.11 2016/04/04 01:40:12 mikem Exp $
 
 #include <RH_RF95.h>
 
@@ -41,6 +41,9 @@ bool RH_RF95::init()
     int interruptNumber = digitalPinToInterrupt(_interruptPin);
     if (interruptNumber == NOT_AN_INTERRUPT)
 	return false;
+#ifdef RH_ATTACHINTERRUPT_TAKES_PIN_NUMBER
+    interruptNumber = _interruptPin;
+#endif
 
     // No way to check the device type :-(
     
@@ -319,33 +322,46 @@ void RH_RF95::setModeTx()
     }
 }
 
-void RH_RF95::setTxPower(int8_t power)
+void RH_RF95::setTxPower(int8_t power, bool useRFO)
 {
-    if (power > 23)
-	power = 23;
-    if (power < 5)
-	power = 5;
-
-    // For RH_RF95_PA_DAC_ENABLE, manual says '+20dBm on PA_BOOST when OutputPower=0xf'
-    // RH_RF95_PA_DAC_ENABLE actually adds about 3dBm to all power levels. We will us it
-    // for 21, 22 and 23dBm
-    if (power > 20)
+    // Sigh, different behaviours depending on whther the module use PA_BOOST or the RFO pin
+    // for the transmitter output
+    if (useRFO)
     {
-	spiWrite(RH_RF95_REG_4D_PA_DAC, RH_RF95_PA_DAC_ENABLE);
-	power -= 3;
+	if (power > 14)
+	    power = 14;
+	if (power < -1)
+	    power = -1;
+	spiWrite(RH_RF95_REG_09_PA_CONFIG, RH_RF95_MAX_POWER | (power + 1));
     }
     else
     {
-	spiWrite(RH_RF95_REG_4D_PA_DAC, RH_RF95_PA_DAC_DISABLE);
-    }
+	if (power > 23)
+	    power = 23;
+	if (power < 5)
+	    power = 5;
 
-    // RFM95/96/97/98 does not have RFO pins connected to anything. Only PA_BOOST
-    // pin is connected, so must use PA_BOOST
-    // Pout = 2 + OutputPower.
-    // The documentation is pretty confusing on this topic: PaSelect says the max power is 20dBm,
-    // but OutputPower claims it would be 17dBm.
-    // My measurements show 20dBm is correct
-    spiWrite(RH_RF95_REG_09_PA_CONFIG, RH_RF95_PA_SELECT | (power-5));
+	// For RH_RF95_PA_DAC_ENABLE, manual says '+20dBm on PA_BOOST when OutputPower=0xf'
+	// RH_RF95_PA_DAC_ENABLE actually adds about 3dBm to all power levels. We will us it
+	// for 21, 22 and 23dBm
+	if (power > 20)
+	{
+	    spiWrite(RH_RF95_REG_4D_PA_DAC, RH_RF95_PA_DAC_ENABLE);
+	    power -= 3;
+	}
+	else
+	{
+	    spiWrite(RH_RF95_REG_4D_PA_DAC, RH_RF95_PA_DAC_DISABLE);
+	}
+
+	// RFM95/96/97/98 does not have RFO pins connected to anything. Only PA_BOOST
+	// pin is connected, so must use PA_BOOST
+	// Pout = 2 + OutputPower.
+	// The documentation is pretty confusing on this topic: PaSelect says the max power is 20dBm,
+	// but OutputPower claims it would be 17dBm.
+	// My measurements show 20dBm is correct
+	spiWrite(RH_RF95_REG_09_PA_CONFIG, RH_RF95_PA_SELECT | (power-5));
+    }
 }
 
 // Sets registers from a canned modem configuration structure

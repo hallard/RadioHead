@@ -1,7 +1,7 @@
 // RH_RF69.h
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2014 Mike McCauley
-// $Id: RH_RF69.h,v 1.29 2015/05/17 00:11:26 mikem Exp $
+// $Id: RH_RF69.h,v 1.32 2016/07/07 00:02:53 mikem Exp mikem $
 //
 ///
 
@@ -262,19 +262,6 @@
 #define RH_RF69_FIFOTHRESH_FIFOTHRESHOLD                    0x7f
 
 // RH_RF69_REG_3D_PACKETCONFIG2
-#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_1BIT           0x00  // Default
-#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_2BITS          0x10
-#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_4BITS          0x20
-#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_8BITS          0x30
-#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_16BITS         0x40
-#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_32BITS         0x50
-#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_64BITS         0x60
-#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_128BITS        0x70
-#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_256BITS        0x80
-#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_512BITS        0x90
-#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_1024BITS       0xA0
-#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_2048BITS       0xB0
-#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_NONE           0xC0
 #define RH_RF69_PACKETCONFIG2_INTERPACKETRXDELAY            0xf0
 #define RH_RF69_PACKETCONFIG2_RESTARTRX                     0x04
 #define RH_RF69_PACKETCONFIG2_AUTORXRESTARTON               0x02
@@ -312,6 +299,12 @@
 /// - RFM69 modules from http://www.hoperfusa.com such as http://www.hoperfusa.com/details.jsp?pid=145
 /// - Anarduino MiniWireless -CW and -HW boards http://www.anarduino.com/miniwireless/ including
 ///  the marvellous high powered MinWireless-HW (with 20dBm output for excellent range)
+/// - the excellent Rocket Scream Mini Ultra Pro with the RFM69HCW 
+///   http://www.rocketscream.com/blog/product/mini-ultra-pro-with-radio/
+/// - The excellent talk2 Whisper Node boards 
+///   (https://talk2.wisen.com.au/ and https://bitbucket.org/talk2/), 
+///   an Arduino Nano compatible board, which include an on-board RF69 radio, external antenna, 
+///   run on 2xAA batteries and support low power operations. RF69 examples work without modification.
 ///
 /// \par Overview
 ///
@@ -380,7 +373,7 @@
 /// programming connection and an antenna to make it work.
 ///
 /// If you have a bare RFM69W that you want to connect to an Arduino, you
-/// might use these connections (untested): CAUTION: you must use a 3.3V type
+/// might use these connections: CAUTION: you must use a 3.3V type
 /// Arduino, otherwise you will also need voltage level shifters between the
 /// Arduino and the RFM69.  CAUTION, you must also ensure you connect an
 /// antenna
@@ -394,6 +387,18 @@
 ///         SCK pin D13----------SCK   (SPI clock in)
 ///        MOSI pin D11----------MOSI  (SPI Data in)
 ///        MISO pin D12----------MISO  (SPI Data out)
+/// \endcode
+///
+/// For Arduino Due, use these connections:
+/// \code
+///                 Arduino      RFM69W
+///                 GND----------GND   (ground in)
+///                 3V3----------3.3V  (3.3V in)
+/// interrupt 0 pin D2-----------DIO0  (interrupt request out)
+///          SS pin D10----------NSS   (chip select in)
+///       SCK SPI pin 3----------SCK   (SPI clock in)
+///      MOSI SPI pin 4----------MOSI  (SPI Data in)
+///      MISO SPI pin 1----------MISO  (SPI Data out)
 /// \endcode
 ///
 /// With these connections, you can then use the default constructor RH_RF69().
@@ -419,6 +424,68 @@
 /// \endcode
 /// Make sure you have the MoteinoMEGA core installed in your Arduino hardware folder as described in the
 /// documentation for the MoteinoMEGA.
+///
+/// If you have an Arduino M0 Pro from arduino.org, 
+/// you should note that you cannot use Pin 2 for the interrupt line 
+/// (Pin 2 is for the NMI only). The same comments apply to Pin 4 on Arduino Zero from arduino.cc.
+/// Instead you can use any other pin (we use Pin 3) and initialise RH_RF69 like this:
+/// \code
+/// // Slave Select is pin 10, interrupt is Pin 3
+/// RH_RF69 driver(10, 3);
+/// \endcode
+///
+/// If you have a Rocket Scream Mini Ultra Pro with the RFM69HCW
+/// - Ensure you have Arduino SAMD board support 1.6.5 or later in Arduino IDE 1.6.8 or later.
+/// - The radio SS is hardwired to pin D5 and the DIO0 interrupt to pin D2, 
+/// so you need to initialise the radio like this:
+/// \code
+/// RH_RF69 driver(5, 2);
+/// \endcode
+/// - The name of the serial port on that board is 'SerialUSB', not 'Serial', so this may be helpful at the top of our
+///   sample sketches:
+/// \code
+/// #define Serial SerialUSB
+/// \endcode
+/// - You also need this in setup before radio initialisation  
+/// \code
+/// // Ensure serial flash is not interfering with radio communication on SPI bus
+///  pinMode(4, OUTPUT);
+///  digitalWrite(4, HIGH);
+/// \endcode
+/// - and if you have a 915MHz part, you need this after driver/manager intitalisation:
+/// \code
+/// rf69.setFrequency(915.0);
+/// rf69.setTxPower(20);
+/// \endcode
+/// which adds up to modifying sample sketches something like:
+/// \code
+/// #include <SPI.h>
+/// #include <RH_RF69.h>
+/// RH_RF69 rf69(5, 2); // Rocket Scream Mini Ultra Pro with the RFM69HCW
+/// #define Serial SerialUSB
+/// 
+/// void setup() 
+/// {
+///   // Ensure serial flash is not interfering with radio communication on SPI bus
+///   pinMode(4, OUTPUT);
+///   digitalWrite(4, HIGH);
+/// 
+///   Serial.begin(9600);
+///   while (!Serial) ; // Wait for serial port to be available
+///   if (!rf69.init())
+///     Serial.println("init failed");
+///   rf69.setFrequency(915.0);
+///   rf69.setTxPower(20);
+/// }
+/// ...
+/// \endcode
+///
+/// If you have a talk2 Whisper Node board with on-board RF69 radio, 
+/// the example rf69_* sketches work without modifications. Initialise the radio like
+/// with the default constructor:
+/// \code
+///  RH_RF69 driver;
+/// \endcode
 ///
 /// It is possible to have 2 or more radios connected to one Arduino, provided
 /// each radio has its own SS and interrupt line (SCK, SDI and SDO are common
@@ -596,7 +663,6 @@ public:
 	FSK_Rb125Fd125,    ///< FSK, Whitening, Rb = 125kbs,  Fd = 125kHz
 	FSK_Rb250Fd250,    ///< FSK, Whitening, Rb = 250kbs,  Fd = 250kHz
 	FSK_Rb55555Fd50,   ///< FSK, Whitening, Rb = 55555kbs,Fd = 50kHz for RFM69 lib compatibility
-	FSK_MOTEINO,       ///< FSK, No Whitening, Rb = 55555kbs,Fd = 50kHz, No DC-Free for RFM69 lib compatibility
 
 	GFSK_Rb2Fd5,	    ///< GFSK, Whitening, Rb = 2kbs,    Fd = 5kHz
 	GFSK_Rb2_4Fd4_8,    ///< GFSK, Whitening, Rb = 2.4kbs,  Fd = 4.8kHz
@@ -631,6 +697,8 @@ public:
     /// Caution: You must specify an interrupt capable pin.
     /// On many Arduino boards, there are limitations as to which pins may be used as interrupts.
     /// On Leonardo pins 0, 1, 2 or 3. On Mega2560 pins 2, 3, 18, 19, 20, 21. On Due and Teensy, any digital pin.
+    /// On Arduino Zero from arduino.cc, any digital pin other than 4.
+    /// On Arduino M0 Pro from arduino.org, any digital pin other than 2.
     /// On other Arduinos pins 2 or 3. 
     /// See http://arduino.cc/en/Reference/attachInterrupt for more details.
     /// On Chipkit Uno32, pins 38, 2, 7, 8, 35.
@@ -649,10 +717,6 @@ public:
     /// - Sets the modem data rate to FSK_Rb2Fd5
     /// \return  true if everything was successful
     bool        init();
-
-
-    /// Configure the radio module to be in Moteino configuration
-    void setConfigMoteino();
 
     /// Reads the on-chip temperature sensor.
     /// The RF69 must be in Idle mode (= RF69 Standby) to measure temperature.
@@ -716,13 +780,6 @@ public:
     /// \return true if index is a valid choice.
     bool        setModemConfig(ModemConfigChoice index);
 
-    /// Get the values of one of the predefined modem configurations.
-    /// 
-    /// \param[in] index The configuration choice.
-    /// \param[in] config A ModemConfig structure that will contains values of the modem configuration values.
-    /// \return true if index is a valid choice and config has been filled with values
-    bool        getModemConfig(ModemConfigChoice index, ModemConfig* config);
-
     /// Starts the receiver and checks whether a received message is available.
     /// This can be called multiple times in a timeout loop
     /// \return true if a complete, valid message has been received and is able to be retrieved by
@@ -747,13 +804,6 @@ public:
     /// \param[in] len Number of bytes of data to send (> 0)
     /// \return true if the message length was valid and it was correctly queued for transmit
     bool        send(const uint8_t* data, uint8_t len);
-
-    /// Blocks until the current message (if any) 
-    /// has been transmitted
-    /// \return true on success, false if the chip is not in transmit mode or other transmit failure
-    #ifdef RH_RF69_IRQLESS
-    virtual bool waitPacketSent();
-    #endif
 
     /// Sets the length of the preamble
     /// in bytes. 
@@ -819,16 +869,13 @@ protected:
     /// This is a low level function to handle the interrupts for one instance of RF69.
     /// Called automatically by isr*()
     /// Should not need to be called by user code.
-    #ifndef RH_RF69_IRQLESS
     void           handleInterrupt();
-    #endif
 
     /// Low level function to read the FIFO and put the received data into the receive buffer
     /// Should not need to be called by user code.
     void           readFifo();
 
 protected:
-    #ifndef RH_RF69_IRQLESS
     /// Low level interrupt service routine for RF69 connected to interrupt 0
     static void         isr0();
 
@@ -850,7 +897,6 @@ protected:
     /// The index into _deviceForInterrupt[] for this device (if an interrupt is already allocated)
     /// else 0xff
     uint8_t             _myInterruptIndex;
-    #endif
 
     /// The radio OP mode to use when mode is RHModeIdle
     uint8_t             _idleMode; 

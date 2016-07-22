@@ -2,7 +2,7 @@
 //
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2011 Mike McCauley
-// $Id: RHReliableDatagram.h,v 1.16 2015/08/12 23:18:51 mikem Exp $
+// $Id: RHReliableDatagram.h,v 1.17 2016/04/04 01:40:12 mikem Exp $
 
 #ifndef RHReliableDatagram_h
 #define RHReliableDatagram_h
@@ -89,6 +89,8 @@ public:
     /// transmission of the message. It must be at least longer than the the transmit 
     /// time of the acknowledgement (preamble+6 octets) plus the latency/poll time of the receiver. 
     /// For fast modulation schemes you can considerably shorten this time.
+    /// Caution: if you are using slow packet rates and long packets 
+    /// you may need to change the timeout for reliable operations.
     /// The actual timeout is randomly varied between timeout and timeout*2.
     /// \param[in] timeout The new timeout period in milliseconds
     void setTimeout(uint16_t timeout);

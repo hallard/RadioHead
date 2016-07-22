@@ -1,7 +1,7 @@
 // RHSPIDriver.cpp
 //
 // Copyright (C) 2014 Mike McCauley
-// $Id: RHSPIDriver.cpp,v 1.9 2014/05/03 00:20:36 mikem Exp $
+// $Id: RHSPIDriver.cpp,v 1.10 2015/12/16 04:55:33 mikem Exp $
 
 #include <RHSPIDriver.h>
 
@@ -77,5 +77,7 @@ uint8_t RHSPIDriver::spiBurstWrite(uint8_t reg, const uint8_t* src, uint8_t len)
     return status;
 }
 
-
-
+void RHSPIDriver::setSlaveSelectPin(uint8_t slaveSelectPin)
+{
+    _slaveSelectPin = slaveSelectPin;
+}

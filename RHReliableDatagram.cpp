@@ -9,7 +9,7 @@
 //
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2011 Mike McCauley
-// $Id: RHReliableDatagram.cpp,v 1.14 2015/08/13 02:45:47 mikem Exp mikem $
+// $Id: RHReliableDatagram.cpp,v 1.15 2015/12/11 01:10:24 mikem Exp $
 
 #include <RHReliableDatagram.h>
 
@@ -67,7 +67,11 @@ bool RHReliableDatagram::sendtoWait(uint8_t* buf, uint8_t len, uint8_t address)
 	// Compute a new timeout, random between _timeout and _timeout*2
 	// This is to prevent collisions on every retransmit
 	// if 2 nodes try to transmit at the same time
+#if (RH_PLATFORM == RH_PLATFORM_RASPI) // use standard library random(), bugs in random(min, max)
+	uint16_t timeout = _timeout + (_timeout * (random() & 0xFF) / 256);
+#else
 	uint16_t timeout = _timeout + (_timeout * random(0, 256) / 256);
+#endif
 	int32_t timeLeft;
         while ((timeLeft = timeout - (millis() - thisSendTime)) > 0)
 	{

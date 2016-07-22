@@ -1,7 +1,7 @@
 // RadioHead.h
 // Author: Mike McCauley (mikem@airspayce.com) DO NOT CONTACT THE AUTHOR DIRECTLY
 // Copyright (C) 2014 Mike McCauley
-// $Id: RadioHead.h,v 1.49 2015/08/13 02:45:47 mikem Exp mikem $
+// $Id: RadioHead.h,v 1.56 2016/07/07 00:02:53 mikem Exp mikem $
 
 /// \mainpage RadioHead Packet Radio library for embedded microprocessors
 ///
@@ -10,7 +10,7 @@
 /// via a variety of common data radios and other transports on a range of embedded microprocessors.
 ///
 /// The version of the package that this documentation refers to can be downloaded 
-/// from http://www.airspayce.com/mikem/arduino/RadioHead/RadioHead-1.46.zip
+/// from http://www.airspayce.com/mikem/arduino/RadioHead/RadioHead-1.61.zip
 /// You can find the latest version at http://www.airspayce.com/mikem/arduino/RadioHead
 ///
 /// You can also find online help and discussion at 
@@ -89,9 +89,17 @@
 /// Works with Nordic nRF51 compatible 2.4 GHz SoC/devices such as the nRF51822.
 ///
 /// - RH_RF95
-/// Works with Semtech SX1276/77/78 and HopeRF RFM95/96/97/98 and other similar LoRa capable radios.
+/// Works with Semtech SX1276/77/78/79, Modtronix inAir4 and inAir9,
+/// and HopeRF RFM95/96/97/98 and other similar LoRa capable radios.
 /// Supports Long Range (LoRa) with spread spectrum frequency hopping, large payloads etc.
 /// FSK/GFSK/OOK modes are not (yet) supported.
+///
+/// - RH_MRF89
+/// Works with Microchip MRF89XA and compatible transceivers.
+/// and modules such as MRF89XAM9A.
+///
+/// - RH_CC110
+/// Works with Texas Instruments CC110L transceivers and compatible modules such as Anaren AIR BoosterPack 430BOOST-CC110L
 ///
 /// - RH_ASK
 /// Works with a range of inexpensive ASK (amplitude shift keying) RF transceivers such as RX-B1 
@@ -138,18 +146,23 @@
 /// 
 /// A range of platforms is supported:
 ///
-/// - Arduino and the Arduino IDE (version 1.0 to 1.6.4 and later)
-/// Including Diecimila, Uno, Mega, Leonardo, Yun etc. http://arduino.cc/, Also similar boards such as 
+/// - Arduino and the Arduino IDE (version 1.0 to 1.6.5 and later)
+/// Including Diecimila, Uno, Mega, Leonardo, Yun, Due, Zero etc. http://arduino.cc/, Also similar boards such as 
 ///  - Moteino http://lowpowerlab.com/moteino/ 
 ///  - Anarduino Mini http://www.anarduino.com/mini/ 
 ///  - RedBearLab Blend V1.0 http://redbearlab.com/blend/ (with Arduino 1.0.5 and RedBearLab Blend Add-On version 20140701) 
 ///  -  MoteinoMEGA https://lowpowerlab.com/shop/moteinomega 
 ///     (with Arduino 1.0.5 and the MoteinoMEGA Arduino Core 
 ///     https://github.com/LowPowerLab/Moteino/tree/master/MEGA/Core)
+///  - ESP8266 on Arduino IDE and Boards Manager per https://github.com/esp8266/Arduino 
+///    Tested using Arduino 1.6.8 with esp8266 by ESP8266 Community version 2.1.0
+///    Examples serial_reliable_datagram_* and ask_* are shown to work. 
+///    CAUTION: The GHz radio included in the ESP8266 is
+///    not yet supported. 
 ///  - etc.
 ///
-/// - ChipKit Uno32 board and the MPIDE development environment
-/// http://www.digilentinc.com/Products/Detail.cfm?Prod=CHIPKIT-UNO32
+/// - ChipKIT Core with Arduino IDE on any ChipKIT Core supported Digilent processor (tested on Uno32)
+/// http://chipkit.net/wiki/index.php?title=ChipKIT_core
 ///
 /// - Maple and Flymaple boards with libmaple and the Maple-IDE development environment
 /// http://leaflabs.com/devices/maple/ and http://www.open-drone.org/flymaple
@@ -158,7 +171,13 @@
 ///   teensyduino addon 1.18 to 1.23 and later.
 ///   http://www.pjrc.com/teensy
 ///
+/// - Particle Photon https://store.particle.io/collections/photon and ARM3 based CPU with built-in 
+///   Wi-Fi transceiver and extensive IoT software suport. RadioHead does not support the built-in transceiver
+///   bt can be used to control other SPI based radios, Serial ports etc.
+///   See below for details on how to build RadioHead for Photon
+///
 /// - ATtiny built using Arduino IDE 1.0.5 with the arduino-tiny support from https://code.google.com/p/arduino-tiny/
+///   and Digispark built with Arduino 1.6.5.
 ///   (Caution: these are very small processors and not all RadioHead features may be available, depending on memory requirements)
 ///
 /// - nRF51 compatible Arm chips such as nRF51822 with Arduino 1.6.4 and later using the procedures
@@ -208,6 +227,55 @@
 /// The example sketches will be visible in in your Arduino, mpide, maple-ide or whatever.
 /// http://arduino.cc/en/Guide/Libraries
 ///
+/// \par Building for Particle Photon
+///
+/// The Photon is not supported by the Arduino IDE, so it takes a little effort to set up a build environment.
+/// Heres what we did to enable building of RadioHead example sketches on Linux, 
+/// but there are other ways to skin this cat.
+/// Basic reference for getting stated is: http://particle-firmware.readthedocs.org/en/develop/build/
+/// - Download the ARM gcc cross compiler binaries and unpack it in a suitable place:
+/// \code
+/// cd /tmp
+/// wget https://launchpad.net/gcc-arm-embedded/5.0/5-2015-q4-major/+download/gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2
+/// tar xvf gcc-arm-none-eabi-5_2-2015q4-20151219-linux.tar.bz2
+/// \endcode
+/// - If dfu-util and friends not installed on your platform, download dfu-util and friends to somewhere in your path
+/// \code
+/// cd ~/bin
+/// wget http://dfu-util.sourceforge.net/releases/dfu-util-0.8-binaries/linux-i386/dfu-util
+/// wget http://dfu-util.sourceforge.net/releases/dfu-util-0.8-binaries/linux-i386/dfu-suffix
+/// wget http://dfu-util.sourceforge.net/releases/dfu-util-0.8-binaries/linux-i386/dfu-prefix
+/// \endcode
+/// - Download the Particle firmware (contains headers and libraries require to compile Photon sketches) 
+///   to a suitable place:
+/// \code
+/// cd /tmp
+/// wget https://github.com/spark/firmware/archive/develop.zip
+/// unzip develop.zip
+/// \endcode
+/// - Make a working area containing the RadioHead library source code and your RadioHead sketch. You must
+///   rename the sketch from .pde or .ino to application.cpp
+/// \code
+/// cd /tmp
+/// mkdir RadioHead
+/// cd RadioHead
+/// cp /usr/local/projects/arduino/libraries/RadioHead/*.h .
+/// cp /usr/local/projects/arduino/libraries/RadioHead/*.cpp .
+/// cp /usr/local/projects/arduino/libraries/RadioHead/examples/cc110/cc110_client/cc110_client.pde application.cpp
+/// \endcode
+/// - Edit application.cpp and comment out any #include <SPI.h> so it looks like:
+/// \code
+///   // #include <SPI.h>
+/// \endcode
+/// - Connect your Photon by USB. Put it in DFU mode as descibed in Photon documentation. Light should be flashing yellow
+/// - Compile the RadioHead sketch and install it as the user program (this does not update the rest of the
+///   Photon firmware, just the user part:
+/// \code
+/// cd /tmp/firmware-develop/main
+/// PATH=$PATH:/tmp/gcc-arm-none-eabi-5_2-2015q4/bin make APPDIR=/tmp/RadioHead all PLATFORM=photon program-dfu
+/// \endcode
+/// - You should see RadioHead compile without errors and download the finished sketch into the Photon.
+///
 /// \par Compatible Hardware Suppliers
 ///
 /// We have had good experiences with the following suppliers of RadioHead compatible hardware:
@@ -236,7 +304,7 @@
 ///
 /// \par Copyright
 ///
-/// This software is Copyright (C) 2011-2014 Mike McCauley. Use is subject to license
+/// This software is Copyright (C) 2011-2016 Mike McCauley. Use is subject to license
 /// conditions. The main licensing options available are GPL V2 or Commercial:
 /// 
 /// \par Open Source Licensing GPL V2
@@ -515,7 +583,7 @@
 ///              Reported by Friedrich Müller.<br>
 ///  \version 1.45 2015-08-13
 ///              Added support for using RH_Serial on Linux and OSX (new class RHutil/HardwareSerial
-///              encapsulates serial ports on those platforms). Example examples/serial*/* upgraded
+///              encapsulates serial ports on those platforms). Example examples/serial upgraded
 ///              to build and run on Linux and OSX using the tools/simBuild builder.
 ///              RHMesh, RHRouter and RHReliableDatagram updated so they can use RH_Serial without
 ///              polling loops on Linux and OSX for CPU efficiency.<br>
@@ -526,6 +594,74 @@
 ///              build an audio TX/RX pair with RedBear nRF51822 boards and a SparkFun MCP4725 DAC board.
 ///              Uses the built-in ADC of the nRF51822 to sample audio at 5kHz and transmit packets
 ///              to the receiver which plays them via the DAC.<br>
+/// \version 1.47 2015-09-18
+///              Removed top level Makefile from distribution: its only used by the developer and 
+///              its presence confuses some people.<br>
+///              Fixed a problem with RHReliableDatagram with some versions of Raspberry Pi random() that causes 
+///              problems: random(min, max) sometimes exceeds its max limit.
+/// \version 1.48 2015-09-30
+///              Added support for Arduino Zero. Tested on Arduino Zero Pro.
+/// \version 1.49 2015-10-01
+///              Fixed problems that prevented interrupts working correctly on Arduino Zero and Due.
+///              Builds and runs with 1.6.5 (with 'Arduino SAMD Boards' for Zero version 1.6.1) from arduino.cc.
+///              Arduino version 1.7.7 from arduino.org is not currently supported.
+/// \version 1.50 2015-10-25
+///              Verified correct building and operation with Arduino 1.7.7 from arduino.org.
+///              Caution: You must burn the bootloader from 1.7.7 to the Arduino Zero before it will 
+///              work with Arduino 1.7.7 from arduino.org. Conversely, you must burn the bootloader from 1.6.5 
+///              to the Arduino Zero before it will 
+///              work with Arduino 1.6.5 from arduino.cc. Sigh.
+///              Fixed a problem with RH_NRF905 that prevented the power and frequency ranges being set
+///              properly. Reported by Alan Webber.
+/// \version 1.51 2015-12-11
+///              Changes to RH_RF6::setTxPower() to be compatible with SX1276/77/78/79 modules that
+///              use RFO transmitter pins instead of PA_BOOST, such as the excellent
+///              Modtronix inAir4 http://modtronix.com/inair4.html 
+///              and inAir9 modules http://modtronix.com/inair9.html. With the kind assistance of 
+///              David from Modtronix.
+/// \version 1.52 2015-12-17
+///              Added RH_MRF89 module to suport Microchip MRF89XA and compatible transceivers.
+///              and modules.<br>
+/// \version 1.53 2016-01-02
+///              Added RH_CC110 module to support Texas Instruments CC110L and compatible transceivers and modules.<br>
+/// \version 1.54 2016-01-29
+///              Added support for ESP8266 processor on Arduino IDE. Examples serial_reliable_datagram_* are shown to work. 
+///              CAUTION: SPI not supported yet. Timers used by RH_ASK are not tested. 
+///              The GHz radio included in the ESP8266 is not yet supported. 
+/// \version 1.55 2016-02-12
+///              Added macros for htons() and friends to RadioHead.h.
+///              Added example sketch serial_gateway.pde. Acts as a transparent gateway between RH_RF22 and RH_Serial, 
+///              and with minor mods acts as a universal gateway between any 2 RadioHead driver networks.
+///              Initial work on supporting STM32 F2 on Particle Photon: new platform type defined.
+///              Fixed many warnings exposed by test building for Photon.
+///              Particle Photon tested support for RH_Serial, RH_ASK, SPI, RH_CC110 etc.
+///              Added notes on how to build RadioHead sketches for Photon.
+/// \version 1.56 2016-02-18 
+///              Implemented timers for RH_ASK on ESP8266, added some doc on IO pin selection.
+/// \version 1.57 2016-02-23
+///              Fixed an issue reported by S3B, where RH_RF22 would sometimes not clear the rxbufvalid flag.
+/// \version 1.58 2-16-04-04
+///              Tested RH_RF69 with Arduino Due. OK. Updated doc.<br>
+///              Added support for all ChipKIT Core supported boards 
+///              http://chipkit.net/wiki/index.php?title=ChipKIT_core
+///              Tested on ChipKIT Uno32.<br>
+///              Digilent Uno32 under the old MPIDE is no longer formally 
+///              supported but may continue to work for some time.<br>
+/// \version 1.59 2016-04-12
+///              Testing with the excellent Rocket Scream Mini Ultra Pro with the RFM95W and RFM69HCW modules from
+///              http://www.rocketscream.com/blog/product/mini-ultra-pro-with-radio/  (915MHz versions). Updated
+///              documentation with hints to suit. Caution: requires Arduino 1.6.8 and Arduino SAMD Boards 1.6.5.
+///              See also http://www.rocketscream.com/blog/2016/03/10/radio-range-test-with-rfm69hcw/
+///              for the vendors tests and range with the RFM69HCW version.
+///              These boards are highly recommended. They also include battery charging support.
+/// \version 1.60 2016-06-25
+///              Tested with the excellent talk2 Whisper Node boards 
+///             (https://talk2.wisen.com.au/ and https://bitbucket.org/talk2/), 
+///              an Arduino Nano compatible board, which include an on-board RF69 radio, external antenna, 
+///              run on 2xAA batteries and support low power operations. RF69 examples work without modification.
+///              Added support for ESP8266 SPI, provided by David Skinner.
+/// \version 1.61 2016-07-07
+///              Patch to RH_ASK.cpp for ESP8266, to prevent crashes in interrupt handlers. Patch from Alexander Mamchits.
 ///
 /// \author  Mike McCauley. DO NOT CONTACT THE AUTHOR DIRECTLY. USE THE MAILING LIST GIVEN ABOVE
 
@@ -534,7 +670,7 @@
 
 // Official version numbers are maintained automatically by Makefile:
 #define RH_VERSION_MAJOR 1
-#define RH_VERSION_MINOR 46
+#define RH_VERSION_MINOR 61
 
 // Symbolic names for currently supported platform types
 #define RH_PLATFORM_ARDUINO          1
@@ -547,23 +683,31 @@
 #define RH_PLATFORM_STM32F4_HAL      8 
 #define RH_PLATFORM_RASPI            9
 #define RH_PLATFORM_NRF51            10
-#define RH_PLATFORM_PARTICLE         11
+#define RH_PLATFORM_ESP8266          11
+#define RH_PLATFORM_STM32F2          12
+#define RH_PLATFORM_CHIPKIT_CORE     13
 
 ////////////////////////////////////////////////////
 // Select platform automatically, if possible
 #ifndef RH_PLATFORM
- #if defined(MPIDE)
+ #if (MPIDE>=150 && defined(ARDUINO))
+  // Using ChipKIT Core on Arduino IDE
+  #define RH_PLATFORM RH_PLATFORM_CHIPKIT_CORE
+ #elif defined(MPIDE)
+  // Uno32 under old MPIDE, which has been discontinued:
   #define RH_PLATFORM RH_PLATFORM_UNO32
  #elif defined(NRF51)
   #define RH_PLATFORM RH_PLATFORM_NRF51
+ #elif defined(ESP8266)
+  #define RH_PLATFORM RH_PLATFORM_ESP8266
  #elif defined(ARDUINO)
   #define RH_PLATFORM RH_PLATFORM_ARDUINO
- #elif defined(SPARK)
-  #define RH_PLATFORM RH_PLATFORM_PARTICLE
  #elif defined(__MSP430G2452__) || defined(__MSP430G2553__)
   #define RH_PLATFORM RH_PLATFORM_MSP430
  #elif defined(MCU_STM32F103RE)
   #define RH_PLATFORM RH_PLATFORM_STM32
+ #elif defined(STM32F2XX)
+  #define RH_PLATFORM RH_PLATFORM_STM32F2
  #elif defined(USE_STDPERIPH_DRIVER)
   #define RH_PLATFORM RH_PLATFORM_STM32STD
  #elif defined(RASPBERRY_PI)
@@ -597,14 +741,11 @@
   #define RH_HAVE_SERIAL
  #endif
 
-#elif (RH_PLATFORM == RH_PLATFORM_PARTICLE)
-  #include "application.h"
-  #define RH_HAVE_HARDWARE_SPI
-  #define RH_HAVE_SERIAL
-  #define PROGMEM
-  #define memcpy_P memcpy
-  #include "math.h"
-  
+#elif (RH_PLATFORM == RH_PLATFORM_ESP8266) // ESP8266 processor on Arduino IDE
+ #include <Arduino.h>
+ #include <SPI.h>
+ #define RH_HAVE_HARDWARE_SPI
+ #define RH_HAVE_SERIAL
 #elif (RH_PLATFORM == RH_PLATFORM_MSP430) // LaunchPad specific
  #include "legacymsp430.h"
  #include "Energia.h"
@@ -612,7 +753,7 @@
  #define RH_HAVE_HARDWARE_SPI
  #define RH_HAVE_SERIAL
 
-#elif (RH_PLATFORM == RH_PLATFORM_UNO32)
+#elif (RH_PLATFORM == RH_PLATFORM_UNO32 || RH_PLATFORM == RH_PLATFORM_CHIPKIT_CORE)
  #include <WProgram.h>
  #include <string.h>
  #include <SPI.h>
@@ -633,9 +774,16 @@
  #define Serial SerialUSB
  #define RH_HAVE_SERIAL
 
+#elif (RH_PLATFORM == RH_PLATFORM_STM32F2) // Particle Photon with firmware-develop
+ #include <stm32f2xx.h>
+ #include <application.h>
+ #include <math.h> // floor
+ #define RH_HAVE_SERIAL
+ #define RH_HAVE_HARDWARE_SPI
+
 #elif (RH_PLATFORM == RH_PLATFORM_STM32STD) // STM32 with STM32F4xx_StdPeriph_Driver 
  #include <stm32f4xx.h>
- #include <wirish.h>
+ #include <wirish.h>	
  #include <stdint.h>
  #include <string.h>
  #include <math.h>
@@ -681,6 +829,7 @@
  // Simulate the sketch on Linux and OSX
  #include <RHutil/simulator.h>
  #define RH_HAVE_SERIAL
+#include <netinet/in.h> // For htons and friends
 
 #else
  #error Platform unknown!
@@ -689,7 +838,6 @@
 ////////////////////////////////////////////////////
 // This is an attempt to make a portable atomic block
 #if (RH_PLATFORM == RH_PLATFORM_ARDUINO)
-#ifndef ESP8266
 #if defined(__arm__)
   #include <RHutil/atomic.h>
  #else
@@ -697,18 +845,22 @@
  #endif
  #define ATOMIC_BLOCK_START     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
  #define ATOMIC_BLOCK_END }
-#else
-// If you want to pool instead wiring and check RF69 DIO0 pin
-// uncomment to define the following line
-//#define RH_RF69_IRQLESS
-#define ATOMIC_BLOCK_START
-#define ATOMIC_BLOCK_END
-#endif
-
+#elif (RH_PLATFORM == RH_PLATFORM_CHIPKIT_CORE)
+ // UsingChipKIT Core on Arduino IDE
+ #define ATOMIC_BLOCK_START unsigned int __status = disableInterrupts(); {
+ #define ATOMIC_BLOCK_END } restoreInterrupts(__status);
 #elif (RH_PLATFORM == RH_PLATFORM_UNO32)
+ // Under old MPIDE, which has been discontinued:
  #include <peripheral/int.h>
  #define ATOMIC_BLOCK_START unsigned int __status = INTDisableInterrupts(); {
  #define ATOMIC_BLOCK_END } INTRestoreInterrupts(__status);
+#elif (RH_PLATFORM == RH_PLATFORM_STM32F2) // Particle Photon with firmware-develop
+ #define ATOMIC_BLOCK_START { int __prev = HAL_disable_irq();
+ #define ATOMIC_BLOCK_END  HAL_enable_irq(__prev); }
+#elif (RH_PLATFORM == RH_PLATFORM_ESP8266)
+// See hardware/esp8266/2.0.0/cores/esp8266/Arduino.h
+ #define ATOMIC_BLOCK_START { uint32_t __savedPS = xt_rsil(15);
+ #define ATOMIC_BLOCK_END xt_wsr_ps(__savedPS);}
 #else 
  // TO BE DONE:
  #define ATOMIC_BLOCK_START
@@ -720,6 +872,9 @@
 // instead of spin-loops
 // Recent Arduino IDE or Teensy 3 has yield()
 #if (RH_PLATFORM == RH_PLATFORM_ARDUINO && ARDUINO >= 155 && !defined(RH_PLATFORM_ATTINY)) || (TEENSYDUINO && defined(__MK20DX128__))
+ #define YIELD yield();
+#elif (RH_PLATFORM == RH_PLATFORM_ESP8266)
+// ESP8266 also hash it
  #define YIELD yield();
 #else
  #define YIELD
@@ -756,14 +911,20 @@
    #define digitalPinToInterrupt(p)  ((p) == 2 ? 0 : ((p) == 3 ? 1 : NOT_AN_INTERRUPT))
 
   #endif
- 
- #elif (RH_PLATFORM == RH_PLATFORM_UNO32)
+  
+ #elif (RH_PLATFORM == RH_PLATFORM_UNO32) || (RH_PLATFORM == RH_PLATFORM_CHIPKIT_CORE)
+  // Hmmm, this is correct for Uno32, but what about other boards on ChipKIT Core?
   #define digitalPinToInterrupt(p) ((p) == 38 ? 0 : ((p) == 2 ? 1 : ((p) == 7 ? 2 : ((p) == 8 ? 3 : ((p) == 735 ? 4 : NOT_AN_INTERRUPT)))))
 
  #else
   // Everything else (including Due and Teensy) interrupt number the same as the interrupt pin number
   #define digitalPinToInterrupt(p) (p)
  #endif
+#endif
+
+// On some platforms, attachInterrupt() takes a pin number, not an interrupt number
+#if (RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined (__arm__) && (defined(ARDUINO_ARCH_SAMD) || defined(ARDUINO_SAM_DUE))
+ #define RH_ATTACHINTERRUPT_TAKES_PIN_NUMBER
 #endif
 
 // Slave select pin, some platforms such as ATTiny do not define it.
@@ -775,6 +936,33 @@
 #undef abs
 #undef round
 #undef double
+
+// Sigh: there is no widespread adoption of htons and friends in the base code, only in some WiFi headers etc
+// that have a lot of excess baggage
+#if RH_PLATFORM != RH_PLATFORM_UNIX && !defined(htons)
+// #ifndef htons
+// These predefined macros availble on modern GCC compilers
+ #if   __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+  // Atmel processors
+  #define htons(x) ( ((x)<<8) | (((x)>>8)&0xFF) )
+  #define ntohs(x) htons(x)
+  #define htonl(x) ( ((x)<<24 & 0xFF000000UL) | \
+                   ((x)<< 8 & 0x00FF0000UL) | \
+                   ((x)>> 8 & 0x0000FF00UL) | \
+                   ((x)>>24 & 0x000000FFUL) )
+  #define ntohl(x) htonl(x)
+
+ #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+  // Others
+  #define htons(x) (x)
+  #define ntohs(x) (x)
+  #define htonl(x) (x)
+  #define ntohl(x) (x)
+
+ #else
+  #error "Dont know how to define htons and friends for this processor" 
+ #endif
+#endif
 
 // This is the address that indicates a broadcast
 #define RH_BROADCAST_ADDRESS 0xff

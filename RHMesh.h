@@ -2,7 +2,7 @@
 //
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2011 Mike McCauley
-// $Id: RHMesh.h,v 1.15 2015/08/13 02:45:47 mikem Exp mikem $
+// $Id: RHMesh.h,v 1.15 2015/08/13 02:45:47 mikem Exp $
 
 #ifndef RHMesh_h
 #define RHMesh_h
