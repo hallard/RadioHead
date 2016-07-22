@@ -4,6 +4,8 @@
 // $Id: HardwareSerial.cpp,v 1.3 2015/08/13 02:45:47 mikem Exp mikem $
 
 #include <RadioHead.h>
+#if (RH_PLATFORM == RH_PLATFORM_UNIX)
+
 #include <HardwareSerial.h>
 
 #include <string.h>
@@ -241,3 +243,4 @@ bool HardwareSerial::waitAvailableTimeout(uint16_t timeout)
     return result > 0;
 }
 
+#endif

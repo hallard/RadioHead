@@ -1,10 +1,13 @@
 // RH_Serial.cpp
 //
 // Copyright (C) 2014 Mike McCauley
-// $Id: RH_Serial.cpp,v 1.11 2015/08/12 23:18:51 mikem Exp $
+// $Id: RH_Serial.cpp,v 1.12 2016/04/04 01:40:12 mikem Exp $
 
 #include <RH_Serial.h>
-#include <HardwareSerial.h>
+#if (RH_PLATFORM == RH_PLATFORM_STM32F2)
+#else
+ #include <HardwareSerial.h>
+#endif
 #include <RHCRC.h>
 
 RH_Serial::RH_Serial(HardwareSerial& serial)
@@ -60,7 +63,7 @@ bool RH_Serial::waitAvailableTimeout(uint16_t timeout)
     }
     return false;
 #else
-    RHGenericDriver::waitAvailableTimeout(timeout);
+    return RHGenericDriver::waitAvailableTimeout(timeout);
 #endif
 }
 

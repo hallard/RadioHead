@@ -1,7 +1,7 @@
 // RHGenericDriver.h
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2014 Mike McCauley
-// $Id: RHGenericDriver.h,v 1.16 2015/01/02 21:38:24 mikem Exp $
+// $Id: RHGenericDriver.h,v 1.17 2016/04/04 01:40:12 mikem Exp $
 
 #ifndef RHGenericDriver_h
 #define RHGenericDriver_h
@@ -140,7 +140,7 @@ public:
     /// set argument. The default for clear always clears the application specific flags.
     /// \param[in] set bitmask of bits to be set. Flags are cleared with the clear mask before being set.
     /// \param[in] clear bitmask of flags to clear. Defaults to RH_FLAGS_APPLICATION_SPECIFIC
-    ///            which clears the application specific flags, resultiung in new application specific flags
+    ///            which clears the application specific flags, resulting in new application specific flags
     ///            identical to the set.
     virtual void           setHeaderFlags(uint8_t set, uint8_t clear = RH_FLAGS_APPLICATION_SPECIFIC);
 

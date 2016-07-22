@@ -1,7 +1,7 @@
 // RH_ASK.h
 //
 // Copyright (C) 2014 Mike McCauley
-// $Id: RH_ASK.h,v 1.12 2015/08/13 02:45:47 mikem Exp mikem $
+// $Id: RH_ASK.h,v 1.16 2016/07/07 00:02:53 mikem Exp mikem $
 
 #ifndef RH_ASK_h
 #define RH_ASK_h
@@ -97,6 +97,7 @@
 ///
 /// http://web.engr.oregonstate.edu/~moon/research/files/cas2_mar_07_dpll.pdf while not directly relevant 
 /// is also interesting.
+///
 /// \par Implementation Details
 ///
 /// Messages of up to RH_ASK_MAX_PAYLOAD_LEN (67) bytes can be sent
@@ -122,8 +123,6 @@
 /// The code consists of an ISR interrupt handler. Most of the work is done in the interrupt
 /// handler for both transmit and receive, but some is done from the user level. Expensive
 /// functions like CRC computations are always done in the user level.
-/// Caution: VirtualWire takes over Arduino Timer1, and this will affect the PWM capabilities of the 
-/// digital pins 9 and 10.
 ///
 /// \par Supported Hardware
 ///
@@ -133,7 +132,7 @@
 /// other modules may also work with this software. 
 ///
 /// Runs on a wide range of Arduino processors using Arduino IDE 1.0 or later.
-/// Also runs on on Energia
+/// Also runs on on Energia, 
 /// with MSP430G2553 / G2452 and Arduino with ATMega328 (courtesy Yannick DEVOS - XV4Y), 
 /// but untested by us. It also runs on Teensy 3.0 (courtesy of Paul
 /// Stoffregen), but untested by us. Also compiles and runs on ATtiny85 in
@@ -143,6 +142,7 @@
 /// without relying on the Arduino framework, by properly configuring the
 /// library editing the RH_ASK.h header file for describing the access
 /// to IO pins and for setting up the timer.
+/// Runs on ChipKIT Core supported processors such as Uno32 etc.
 ///
 /// - Receivers
 ///  - RX-B1 (433.92MHz) (also known as ST-RX04-ASK)
@@ -213,10 +213,25 @@
 ///
 /// Measured power output from RFM85 at 5V was 18dBm.
 ///
+/// \par ESP8266
+/// This module has been tested with the ESP8266 using an ESP-12 on a breakout board 
+/// ESP-12E SMD Adaptor Board with Power Regulator from tronixlabs 
+/// http://tronixlabs.com.au/wireless/esp8266/esp8266-esp-12e-smd-adaptor-board-with-power-regulator-australia/
+/// compiled on Arduino 1.6.5 and the ESP8266 support 2.0 installed with Board Manager.
+/// CAUTION: do not use pin 11 for IO with this chip: it will cause the sketch to hang. Instead
+/// use constructor arguments to configure different pins, eg:
+/// \code
+/// RH_ASK driver(2000, 2, 4, 5);
+/// \endcode
+/// Which will initialise the driver at 2000 bps, recieve on GPIO2, transmit on GPIO4, PTT on GPIO5.
+/// Caution: on the tronixlabs breakout board, pins 4 and 5 may be labelled vice-versa.
+///
 /// \par Timers
 /// The RH_ASK driver uses a timer-driven interrupt to generate 8 interrupts per bit period. RH_ASK
 /// takes over a timer on Arduino-like platforms. By default it takes over Timer 1. You can force it
 /// to use Timer 2 instead by enabling the define RH_ASK_ARDUINO_USE_TIMER2 near the top of RH_ASK.cpp
+/// On Arduino Zero it takes over timer TC3. On Arduino Due it takes over timer
+/// TC0. On ESP8266, takes over timer0 (which conflicts with ServoTimer0).
 ///
 /// Caution: ATTiny85 has only 2 timers, one (timer 0) usually used for
 /// millis() and one (timer 1) for PWM analog outputs. The RH_ASK Driver
@@ -286,6 +301,15 @@ public:
 
     /// dont call this it used by the interrupt handler
     void            handleTimerInterrupt();
+
+    /// Returns the current speed in bits per second
+    /// \return The current speed in bits per second
+    uint16_t        speed() { return _speed;}
+
+#if (RH_PLATFORM == RH_PLATFORM_ESP8266)
+    /// ESP8266 timer0 increment value
+    uint32_t _timerIncrement;
+#endif
 
 protected:
     /// Helper function for calculating timer ticks

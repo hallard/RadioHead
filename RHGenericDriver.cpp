@@ -1,7 +1,7 @@
 // RHGenericDriver.cpp
 //
 // Copyright (C) 2014 Mike McCauley
-// $Id: RHGenericDriver.cpp,v 1.18 2015/01/02 21:38:24 mikem Exp $
+// $Id: RHGenericDriver.cpp,v 1.19 2015/12/11 01:10:24 mikem Exp $
 
 #include <RHGenericDriver.h>
 
@@ -40,7 +40,9 @@ bool RHGenericDriver::waitAvailableTimeout(uint16_t timeout)
     while ((millis() - starttime) < timeout)
     {
         if (available())
+	{
            return true;
+	}
 	YIELD;
     }
     return false;

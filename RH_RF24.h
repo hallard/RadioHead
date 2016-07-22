@@ -1,7 +1,7 @@
 // RH_RF24.h
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2014 Mike McCauley
-// $Id: RH_RF24.h,v 1.13 2015/08/13 02:45:47 mikem Exp mikem $
+// $Id: RH_RF24.h,v 1.14 2015/12/11 01:10:24 mikem Exp $
 //
 // Supports RF24/RF26 and RFM24/RFM26 modules in FIFO mode
 // also Si4464/63/62/61/60-A1
@@ -571,6 +571,13 @@
 /// does not always produce a reliable radio startup. So this driver controls the SDN pin directly.
 /// Note: the GPIO0-TX_ANT and GPIO1-RX_ANT connections are not required for the 11dBm RFM24W, 
 /// which has no antenna switch.
+///
+/// If you have an Arduino Zero, you should note that you cannot use Pin 2 for the interrupt line 
+/// (Pin 2 is for the NMI only), instead you can use any other pin (we use Pin 3) and initialise RH_RF69 like this:
+/// \code
+/// // Slave Select is pin 10, interrupt is Pin 3
+/// RH_RF24 driver(10, 3);
+/// \endcode
 ///
 /// \par Customising
 ///

@@ -1,5 +1,4 @@
 RadioHead/LICENSE
-RadioHead/Makefile
 RadioHead/MANIFEST
 RadioHead/project.cfg
 RadioHead/RadioHead.h
@@ -19,6 +18,8 @@ RadioHead/RHMesh.cpp
 RadioHead/RHMesh.h
 RadioHead/RHReliableDatagram.cpp
 RadioHead/RHReliableDatagram.h
+RadioHead/RH_CC110.cpp
+RadioHead/RH_CC110.h
 RadioHead/RH_NRF24.cpp
 RadioHead/RH_NRF24.h
 RadioHead/RH_NRF51.cpp
@@ -32,6 +33,8 @@ RadioHead/RH_RF24.h
 RadioHead/radio_config_Si4460.h
 RadioHead/RH_RF69.cpp
 RadioHead/RH_RF69.h
+RadioHead/RH_MRF89.cpp
+RadioHead/RH_MRF89.h
 RadioHead/RH_RF95.cpp
 RadioHead/RH_RF95.h
 RadioHead/RH_TCP.cpp
@@ -58,6 +61,8 @@ RadioHead/examples/ask/ask_reliable_datagram_client/ask_reliable_datagram_client
 RadioHead/examples/ask/ask_reliable_datagram_server/ask_reliable_datagram_server.pde
 RadioHead/examples/ask/ask_transmitter/ask_transmitter.pde
 RadioHead/examples/ask/ask_receiver/ask_receiver.pde
+RadioHead/examples/cc110/cc110_client/cc110_client.pde
+RadioHead/examples/cc110/cc110_server/cc110_server.pde
 RadioHead/examples/rf95/rf95_client/rf95_client.pde
 RadioHead/examples/rf95/rf95_reliable_datagram_client/rf95_reliable_datagram_client.pde
 RadioHead/examples/rf95/rf95_reliable_datagram_server/rf95_reliable_datagram_server.pde
@@ -83,6 +88,8 @@ RadioHead/examples/rf69/rf69_client/rf69_client.pde
 RadioHead/examples/rf69/rf69_reliable_datagram_client/rf69_reliable_datagram_client.pde
 RadioHead/examples/rf69/rf69_reliable_datagram_server/rf69_reliable_datagram_server.pde
 RadioHead/examples/rf69/rf69_server/rf69_server.pde
+RadioHead/examples/mrf89/mrf89_client/mrf89_client.pde
+RadioHead/examples/mrf89/mrf89_server/mrf89_server.pde
 RadioHead/examples/nrf24/nrf24_client/nrf24_client.pde
 RadioHead/examples/nrf24/nrf24_reliable_datagram_client/nrf24_reliable_datagram_client.pde
 RadioHead/examples/nrf24/nrf24_reliable_datagram_server/nrf24_reliable_datagram_server.pde

@@ -2,7 +2,7 @@
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2011 Mike McCauley
 // Contributed by Joanna Rutkowska
-// $Id: RHHardwareSPI.cpp,v 1.12 2015/07/01 00:46:05 mikem Exp $
+// $Id: RHHardwareSPI.cpp,v 1.16 2016/07/07 00:02:53 mikem Exp mikem $
 
 #include <RHHardwareSPI.h>
 
@@ -20,9 +20,9 @@ HardwareSPI SPI(1);
 #endif
 
 // Arduino Due has default SPI pins on central SPI headers, and not on 10, 11, 12, 13
-// as per otherArduinos
+// as per other Arduinos
 // http://21stdigitalhome.blogspot.com.au/2013/02/arduino-due-hardware-spi.html
-#if defined (__arm__) && !defined(CORE_TEENSY) && !defined(SPARK)
+#if defined (__arm__) && !defined(CORE_TEENSY) && !defined(SPI_CLOCK_DIV16)
  // Arduino Due in 1.5.5 has no definitions for SPI dividers
  // SPI clock divider is based on MCK of 84MHz  
  #define SPI_CLOCK_DIV16 (VARIANT_MCK/84000000) // 1MHz
@@ -45,28 +45,22 @@ uint8_t RHHardwareSPI::transfer(uint8_t data)
 
 void RHHardwareSPI::attachInterrupt() 
 {
-#if (RH_PLATFORM == RH_PLATFORM_ARDUINO) || (RH_PLATFORM == RH_PLATFORM_PARTICLE)
-  // Slave SPI does not exist on ESP8266
-  #ifndef ESP8266
+#if (RH_PLATFORM == RH_PLATFORM_ARDUINO)
     SPI.attachInterrupt();
-  #endif
 #endif
 }
 
 void RHHardwareSPI::detachInterrupt() 
 {
-#if (RH_PLATFORM == RH_PLATFORM_ARDUINO) || (RH_PLATFORM == RH_PLATFORM_PARTICLE)
-  // Slave SPI does not exisi on ESP8266
-  #ifndef ESP8266
+#if (RH_PLATFORM == RH_PLATFORM_ARDUINO)
     SPI.detachInterrupt();
-  #endif
 #endif
 }
     
 void RHHardwareSPI::begin() 
 {
     // Sigh: there are no common symbols for some of these SPI options across all platforms
-#if (RH_PLATFORM == RH_PLATFORM_ARDUINO) || (RH_PLATFORM == RH_PLATFORM_UNO32) || (RH_PLATFORM == RH_PLATFORM_PARTICLE)
+#if (RH_PLATFORM == RH_PLATFORM_ARDUINO) || (RH_PLATFORM == RH_PLATFORM_UNO32) || (RH_PLATFORM == RH_PLATFORM_CHIPKIT_CORE)
     uint8_t dataMode;
     if (_dataMode == DataMode0)
 	dataMode = SPI_MODE0;
@@ -78,15 +72,21 @@ void RHHardwareSPI::begin()
 	dataMode = SPI_MODE3;
     else
 	dataMode = SPI_MODE0;
-#if (RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined(__arm__) && defined(CORE_TEENSY) && !defined(SPARK)
+#if (RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined(__arm__) && defined(CORE_TEENSY)
     // Temporary work-around due to problem where avr_emulation.h does not work properly for the setDataMode() cal
     SPCR &= ~SPI_MODE_MASK;
 #else
+ #if (RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined (__arm__) && defined(ARDUINO_ARCH_SAMD)
+    // Zero requires begin() before anything else :-)
+    SPI.begin();
+ #endif
+
     SPI.setDataMode(dataMode);
 #endif
 
-#if (RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined (__arm__) && !defined(CORE_TEENSY) && !defined(SPARK)
+#if (RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined (__arm__) && (defined(ARDUINO_SAM_DUE) || defined(ARDUINO_ARCH_SAMD))
     // Arduino Due in 1.5.5 has its own BitOrder :-(
+    // So too does Arduino Zero
     ::BitOrder bitOrder;
 #else
     uint8_t bitOrder;
@@ -96,109 +96,48 @@ void RHHardwareSPI::begin()
     else
 	bitOrder = MSBFIRST;
     SPI.setBitOrder(bitOrder);
-
-    #ifdef ESP8266
-    long divider;
-    #else
     uint8_t divider;
-    #endif
     switch (_frequency)
     {
 	case Frequency1MHz:
 	default:
-#ifdef ESP8266
-      divider = SPI_CLOCK_DIV16;
-#elif F_CPU == 8000000
+#if F_CPU == 8000000
 	    divider = SPI_CLOCK_DIV8;
 #else
-      #if (RH_PLATFORM == RH_PLATFORM_PARTICLE)
-        #if PLATFORM_ID == 0 // Core 72MHz => 1.12MHz
-        divider = SPI_CLOCK_DIV64;
-
-        #elif PLATFORM_ID == 6 // Photon 120MHZ =3.6MHz
-          divider = SPI_CLOCK_DIV128;
-        #else
-          #error "*** Particle PLATFORM_ID not supported by this library. Particle PLATFORM should be Core or Photon"
-        #endif
-      #else
-	     divider = SPI_CLOCK_DIV16;
-      #endif
+	    divider = SPI_CLOCK_DIV16;
 #endif
 	    break;
 
 	case Frequency2MHz:
-#ifdef ESP8266
-      divider = SPI_CLOCK_DIV8;
-#elif F_CPU == 8000000
+#if F_CPU == 8000000
 	    divider = SPI_CLOCK_DIV4;
 #else
-    #if (RH_PLATFORM == RH_PLATFORM_PARTICLE)
-      #if PLATFORM_ID == 0 // Core 72MHz => 2.25Mhz
-        divider = SPI_CLOCK_DIV32;
-      #elif PLATFORM_ID == 6 // Photon 120MHZ =>1.8Mhz
-        divider = SPI_CLOCK_DIV64;
-      #else
-        #error "*** Particle PLATFORM_ID not supported by this library. Particle PLATFORM should be Core or Photon"
-      #endif
-    #else
-      divider = SPI_CLOCK_DIV8;
-    #endif
+	    divider = SPI_CLOCK_DIV8;
 #endif
 	    break;
 
 	case Frequency4MHz:
-#ifdef ESP8266
-      divider = SPI_CLOCK_DIV4;
-#elif F_CPU == 8000000
+#if F_CPU == 8000000
 	    divider = SPI_CLOCK_DIV2;
 #else
-    #if (RH_PLATFORM == RH_PLATFORM_PARTICLE)
-      #if PLATFORM_ID == 0 // Core 72MHz => 4.5Mhz
-        divider = SPI_CLOCK_DIV16;
-      #elif PLATFORM_ID == 6 // Photon 120MHZ =>3.75Mhz
-        divider = SPI_CLOCK_DIV32;
-      #else
-        #error "*** Particle PLATFORM_ID not supported by this library. Particle PLATFORM should be Core or Photon"
-      #endif
-    #else
-      divider = SPI_CLOCK_DIV4;
-    #endif
+	    divider = SPI_CLOCK_DIV4;
 #endif
 	    break;
 
 	case Frequency8MHz:
-    #if (RH_PLATFORM == RH_PLATFORM_PARTICLE)
-      #if PLATFORM_ID == 0 // Core 72MHz => 9Mhz
-        divider = SPI_CLOCK_DIV8;
-      #elif PLATFORM_ID == 6 // Photon 120MHZ =>7.5Mhz
-        divider = SPI_CLOCK_DIV16;
-      #else
-        #error "*** Particle PLATFORM_ID not supported by this library. Particle PLATFORM should be Core or Photon"
-      #endif
-    #else
-      divider = SPI_CLOCK_DIV2; // 4MHz on an 8MHz Arduino
-    #endif
-
+	    divider = SPI_CLOCK_DIV2; // 4MHz on an 8MHz Arduino
 	    break;
 
 	case Frequency16MHz:
-      #if (RH_PLATFORM == RH_PLATFORM_PARTICLE)
-        #if PLATFORM_ID == 0 // Core 72MHz => 18Mhz
-          divider = SPI_CLOCK_DIV4;
-        #elif PLATFORM_ID == 6 // Photon 120MHZ =>16Mhz
-          divider = SPI_CLOCK_DIV8;
-        #else
-          #error "*** Particle PLATFORM_ID not supported by this library. Particle PLATFORM should be Core or Photon"
-        #endif
-      #else
-	     divider = SPI_CLOCK_DIV2; // Not really 16MHz, only 8MHz. 4MHz on an 8MHz Arduino
-      #endif
-
+	    divider = SPI_CLOCK_DIV2; // Not really 16MHz, only 8MHz. 4MHz on an 8MHz Arduino
 	    break;
 
     }
+
     SPI.setClockDivider(divider);
     SPI.begin();
+    // Teensy requires it to be set _after_ begin()
+    SPI.setClockDivider(divider);
 
 #elif (RH_PLATFORM == RH_PLATFORM_STM32) // Maple etc
     spi_mode dataMode;
@@ -292,6 +231,103 @@ void RHHardwareSPI::begin()
 
     }
     SPI.begin(frequency, bitOrder, dataMode);
+
+#elif (RH_PLATFORM == RH_PLATFORM_STM32F2) // Photon
+    Serial.println("HERE");
+    uint8_t dataMode;
+    if (_dataMode == DataMode0)
+	dataMode = SPI_MODE0;
+    else if (_dataMode == DataMode1)
+	dataMode = SPI_MODE1;
+    else if (_dataMode == DataMode2)
+	dataMode = SPI_MODE2;
+    else if (_dataMode == DataMode3)
+	dataMode = SPI_MODE3;
+    else
+	dataMode = SPI_MODE0;
+    SPI.setDataMode(dataMode);
+    if (_bitOrder == BitOrderLSBFirst)
+	SPI.setBitOrder(LSBFIRST);
+    else
+	SPI.setBitOrder(MSBFIRST);
+
+    switch (_frequency)
+    {
+	case Frequency1MHz:
+	default:
+	    SPI.setClockSpeed(1, MHZ);
+	    break;
+
+	case Frequency2MHz:
+	    SPI.setClockSpeed(2, MHZ);
+	    break;
+
+	case Frequency4MHz:
+	    SPI.setClockSpeed(4, MHZ);
+	    break;
+
+	case Frequency8MHz:
+	    SPI.setClockSpeed(8, MHZ);
+	    break;
+
+	case Frequency16MHz:
+	    SPI.setClockSpeed(16, MHZ);
+	    break;
+    }
+
+//      SPI.setClockDivider(SPI_CLOCK_DIV4);  // 72MHz / 4MHz = 18MHz
+//      SPI.setClockSpeed(1, MHZ);
+      SPI.begin();
+
+#elif (RH_PLATFORM == RH_PLATFORM_ESP8266)
+     // Requires SPI driver for ESP8266 from https://github.com/esp8266/Arduino/tree/master/libraries/SPI
+     // Which ppears to be in Arduino Board Manager ESP8266 Community version 2.1.0
+     // Contributed by David Skinner
+     // begin comes first 
+     SPI.begin();
+
+     // datamode
+     switch ( _dataMode )
+     { 
+	 case DataMode1:
+	     SPI.setDataMode ( SPI_MODE1 );
+	     break;
+	 case DataMode2:
+	     SPI.setDataMode ( SPI_MODE2 );
+	     break;
+	 case DataMode3:
+	     SPI.setDataMode ( SPI_MODE3 );
+	     break;
+	 case DataMode0:
+	 default:
+	     SPI.setDataMode ( SPI_MODE0 );
+	     break;
+     }
+
+     // bitorder
+     SPI.setBitOrder(_bitOrder == BitOrderLSBFirst ? LSBFIRST : MSBFIRST);
+
+     // frequency (this sets the divider)
+     switch (_frequency)
+     {
+	 case Frequency1MHz:
+	 default:
+	     SPI.setFrequency(1000000);
+	     break;
+	 case Frequency2MHz:
+	     SPI.setFrequency(2000000);
+	     break;
+	 case Frequency4MHz:
+	     SPI.setFrequency(4000000);
+	     break;
+	 case Frequency8MHz:
+	     SPI.setFrequency(8000000);
+	     break;
+	 case Frequency16MHz:
+	     SPI.setFrequency(16000000);
+	     break;
+     }
+
 #elif (RH_PLATFORM == RH_PLATFORM_RASPI) // Raspberry PI
   uint8_t dataMode;
   if (_dataMode == DataMode0)
@@ -341,3 +377,4 @@ void RHHardwareSPI::end()
 }
 
 #endif
+

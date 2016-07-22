@@ -1,7 +1,7 @@
 // RH_RF24.cpp
 //
 // Copyright (C) 2011 Mike McCauley
-// $Id: RH_RF24.cpp,v 1.14 2015/08/13 02:45:47 mikem Exp mikem $
+// $Id: RH_RF24.cpp,v 1.16 2016/04/04 01:40:12 mikem Exp $
 
 #include <RH_RF24.h>
 // Generated with Silicon Labs WDS software:
@@ -81,6 +81,9 @@ bool RH_RF24::init()
     int interruptNumber = digitalPinToInterrupt(_interruptPin);
     if (interruptNumber == NOT_AN_INTERRUPT)
 	return false;
+#ifdef RH_ATTACHINTERRUPT_TAKES_PIN_NUMBER
+    interruptNumber = _interruptPin;
+#endif
 
     // Initialise the radio
     power_on_reset();
@@ -358,7 +361,7 @@ bool RH_RF24::send(const uint8_t* data, uint8_t len)
     _txBufSentIndex = 0;
 
     // Set the field 2 length to the variable payload length
-    uint8_t l[] = { len +  RH_RF24_HEADER_LEN};
+    uint8_t l[] = { (uint8_t)(len + RH_RF24_HEADER_LEN)};
     set_properties(RH_RF24_PROPERTY_PKT_FIELD_2_LENGTH_7_0, l, sizeof(l));
 
     sendNextFragment();
@@ -536,7 +539,7 @@ bool RH_RF24::setModemConfig(ModemConfigChoice index)
 
 void RH_RF24::setPreambleLength(uint16_t bytes)
 {
-    uint8_t config[] = { bytes, 0x14, 0x00, 0x00, 
+    uint8_t config[] = { (uint8_t)bytes, 0x14, 0x00, 0x00, 
 			 RH_RF24_PREAMBLE_FIRST_1 | RH_RF24_PREAMBLE_LENGTH_BYTES | RH_RF24_PREAMBLE_STANDARD_1010};
     set_properties(RH_RF24_PROPERTY_PREAMBLE_TX_LENGTH, config, sizeof(config));
 }
@@ -547,7 +550,7 @@ bool RH_RF24::setCRCPolynomial(CRCPolynomial polynomial)
 	polynomial <= CRC_Castagnoli)
     {
 	// Caution this only has effect if CRCs are enabled
-	uint8_t config[] = { (polynomial & RH_RF24_CRC_MASK) | RH_RF24_CRC_SEED_ALL_1S };
+	uint8_t config[] = { (uint8_t)((polynomial & RH_RF24_CRC_MASK) | RH_RF24_CRC_SEED_ALL_1S) };
 	return set_properties(RH_RF24_PROPERTY_PKT_CRC_CONFIG, config, sizeof(config));
     }
     else
@@ -558,7 +561,7 @@ void RH_RF24::setSyncWords(const uint8_t* syncWords, uint8_t len)
 {
     if (len > 4 || len < 1)
 	return;
-    uint8_t config[] = { len-1, 0, 0, 0, 0};
+    uint8_t config[] = { (uint8_t)(len-1), 0, 0, 0, 0};
     memcpy(config+1, syncWords, len);
     set_properties(RH_RF24_PROPERTY_SYNC_CONFIG, config, sizeof(config));
 }
@@ -606,7 +609,7 @@ bool RH_RF24::setFrequency(float centre, float afcPullInRange)
     }
 
     // Set the MODEM_CLKGEN_BAND (not documented)
-    uint8_t modem_clkgen[] = { band+8 };
+    uint8_t modem_clkgen[] = { (uint8_t)(band + 8) };
     if (!set_properties(RH_RF24_PROPERTY_MODEM_CLKGEN_BAND, modem_clkgen, sizeof(modem_clkgen)))
 	return false;
 
@@ -625,7 +628,7 @@ bool RH_RF24::setFrequency(float centre, float afcPullInRange)
     unsigned int m0 = (m - m2 * 0x10000 - m1 * 0x100); 
 
     // PROP_FREQ_CONTROL_GROUP
-    uint8_t freq_control[] = { n, m2, m1, m0 };
+    uint8_t freq_control[] = { (uint8_t)n, (uint8_t)m2, (uint8_t)m1, (uint8_t)m0 };
     return set_properties(RH_RF24_PROPERTY_FREQ_CONTROL_INTE, freq_control, sizeof(freq_control));
 }
 
@@ -685,7 +688,7 @@ void RH_RF24::setModeTx()
 	command(RH_RF24_CMD_GPIO_PIN_CFG, config, sizeof(config));
 
 	uint8_t tx_params[] = { 0x00, 
-				(uint8_t)(_idleMode << 4) | RH_RF24_CONDITION_RETRANSMIT_NO | RH_RF24_CONDITION_START_IMMEDIATE};
+				(uint8_t)((_idleMode << 4) | RH_RF24_CONDITION_RETRANSMIT_NO | RH_RF24_CONDITION_START_IMMEDIATE)};
 	command(RH_RF24_CMD_START_TX, tx_params, sizeof(tx_params));
 	_mode = RHModeTx;
     }

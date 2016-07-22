@@ -1,7 +1,7 @@
 // RH_NRF51.h
 // Author: Mike McCauley
 // Copyright (C) 2015 Mike McCauley
-// $Id: RH_NRF51.h,v 1.2 2015/08/12 23:18:51 mikem Exp $
+// $Id: RH_NRF51.h,v 1.3 2015/08/14 21:20:12 mikem Exp $
 //
 
 #ifndef RH_NRF51_h

@@ -1,7 +1,7 @@
 // RH_NRF905.cpp
 //
 // Copyright (C) 2012 Mike McCauley
-// $Id: RH_NRF905.cpp,v 1.5 2015/08/12 23:18:51 mikem Exp $
+// $Id: RH_NRF905.cpp,v 1.6 2015/12/11 01:10:24 mikem Exp $
 
 #include <RH_NRF905.h>
 
@@ -100,7 +100,10 @@ bool RH_NRF905::setNetworkAddress(uint8_t* address, uint8_t len)
 bool RH_NRF905::setRF(TransmitPower power)
 {
     // Enum definitions of power are the same numerical values as the register
-    spiWriteRegister(RH_NRF905_CONFIG_1_PA_PWR, power);
+    uint8_t reg1 = spiReadRegister(RH_NRF905_CONFIG_1);
+    reg1 &= ~RH_NRF905_CONFIG_1_PA_PWR;
+    reg1 |= ((power & 0x3) << 2) & RH_NRF905_CONFIG_1_PA_PWR;
+    spiWriteRegister(RH_NRF905_CONFIG_1, reg1);
     return true;
 }
 
@@ -231,6 +234,7 @@ bool RH_NRF905::available()
 	validateRxBuf(); 
 	if (_rxBufValid)
 	    setModeIdle(); // Got one
+
     }
     return _rxBufValid;
 }
