@@ -5,8 +5,13 @@ This is a fork of the original RadioHead Packet Radio library for embedded micro
 
 Please read the full documentation and licensing from the original author [site][3]
 
-Since I sometime need to add custom (Example for [ULPNode][6]) features to the lib but keep it in sync with the original one, i've got 2 repo:
-My master one https://github.com/hallard/RadioHead that is the one you need if you want to use my projects or lib added features. Then I forked it to https://github.com/ch2i/RadioHead where I put the original version released by the author. Like this I can do Pull request from [ch2i][4] to [hallard][1] to add new features added by the author to my version.
+Since I sometime need to add custom (Example for [ULPNode][6]) features to the lib but keep it in sync with the original one, I've got 2 repo:    
+
+- My master one https://github.com/hallard/RadioHead that is the one you need if you want to use my projects or lib added features. Then I 
+- forked it to https://github.com/ch2i/RadioHead where I put the original version released by the author.
+
+
+Like this I can do Pull request from [ch2i][4] to [hallard][1] to add new features added by the author to my version.
 
 This mean that this [one][4] is just a git version the latest original done by Mike, I don't do any change on this one.
 
