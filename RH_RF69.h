@@ -16,11 +16,6 @@
 // you just need to uncomment this line
 //#define RH_RF69_IRQLESS
 
-// If you want the default setup be compatible with LowPowerLab RF69
-// library so moteino already flashed device with original library
-// talks with RadioHead, you need to uncomment this line
-//#define RH_RF69_MOTEINO_CONFIG
-
 // The crystal oscillator frequency of the RF69 module
 #define RH_RF69_FXOSC 32000000.0
 
@@ -685,10 +680,7 @@ public:
 	FSK_Rb125Fd125,    ///< FSK, Whitening, Rb = 125kbs,  Fd = 125kHz
 	FSK_Rb250Fd250,    ///< FSK, Whitening, Rb = 250kbs,  Fd = 250kHz
 	FSK_Rb55555Fd50,   ///< FSK, Whitening, Rb = 55555kbs,Fd = 50kHz for RFM69 lib compatibility
-#ifdef RH_RF69_MOTEINO_CONFIG
 	FSK_MOTEINO,       ///< FSK, No Whitening, Rb = 55555kbs,Fd = 50kHz, No DC-Free for RFM69 lib compatibility
-#endif
-
 
 	GFSK_Rb2Fd5,	    ///< GFSK, Whitening, Rb = 2kbs,    Fd = 5kHz
 	GFSK_Rb2_4Fd4_8,    ///< GFSK, Whitening, Rb = 2.4kbs,  Fd = 4.8kHz
