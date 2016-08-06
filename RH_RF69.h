@@ -13,8 +13,20 @@
 #include <RHSPIDriver.h>
 
 // If you don't want to use interupts (mainly to win one I/O pin) then
-// you just need to uncomment this line
+// you just need to uncomment this line, if you're on Raspberry PI 
+// it will be set automaticly below
 //#define RH_RF69_IRQLESS
+
+#if (RH_PLATFORM == RH_PLATFORM_RASPI)
+// No IRQ used on Raspberry PI
+#ifndef RH_RF69_IRQLESS
+#define RH_RF69_IRQLESS
+#endif
+// No memcpy_P Raspberry PI
+#ifndef memcpy_P
+#define memcpy_P memcpy 
+#endif
+#endif // RH_PLATFORM_RASPI PI
 
 // The crystal oscillator frequency of the RF69 module
 #define RH_RF69_FXOSC 32000000.0
