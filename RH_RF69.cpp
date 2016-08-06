@@ -47,11 +47,9 @@ PROGMEM static const RH_RF69::ModemConfig MODEM_CONFIG_TABLE[] =
     { CONFIG_FSK,  0x00, 0x80, 0x10, 0x00, 0xe0, 0xe0, CONFIG_WHITE}, // FSK_Rb250Fd250
     { CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0x42, CONFIG_WHITE}, // FSK_Rb55555Fd50 
 
-#ifdef RH_RF69_MOTEINO_CONFIG
     // MOTEINO
     // REGAFCBW set to default 0x8A, No DC-free encoding/decoding performed
     { CONFIG_FSK,  0x02, 0x40, 0x03, 0x33, 0x42, 0x8A, CONFIG_NOWHITE}, // FSK_MOTEINO
-#endif
 
     //  02,        03,   04,   05,   06,   19,   1a,  37
     // GFSK (BT=1.0), No Manchester, whitening, CRC, no address filtering
@@ -187,28 +185,6 @@ bool RH_RF69::init()
     spiWrite(RH_RF69_REG_5A_TESTPA1, RH_RF69_TESTPA1_NORMAL);
     spiWrite(RH_RF69_REG_5C_TESTPA2, RH_RF69_TESTPA2_NORMAL);
 
-#ifdef RH_RF69_MOTEINO_CONFIG
-    // The following can be changed later by the user if necessary but
-    // as there is some SPI calls, Idon't know if it's possible to call
-    // them from top sketch level side, so I've put them here
-    // Moteino default network ID is 1
-    uint8_t syncwords[] = { 0x2d, 0x01 };
-    setSyncWords(syncwords, sizeof(syncwords));
-    // Moteino settings
-    setModemConfig(FSK_MOTEINO);
-    setPreambleLength(3);
-
-    // Copied from LowPowerLab 
-    spiWrite(RH_RF69_REG_29_RSSITHRESH, 220);
-    spiWrite(RH_RF69_REG_3D_PACKETCONFIG2, RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_2BITS | RH_RF69_PACKETCONFIG2_AUTORXRESTARTON);
-
-    // default moteino Frequency For 433 MHz 
-    setFrequency(433.0);
-
-    //spiWrite(RH_RF69_REG_07_FRFMSB, 0x6C);
-    //spiWrite(RH_RF69_REG_08_FRFMID, 0x40);
-    //spiWrite(RH_RF69_REG_09_FRFLSB, 0x00);
-#else
     // The following can be changed later by the user if necessary.
     // Set up default configuration
     uint8_t syncwords[] = { 0x2d, 0xd4 };
@@ -224,7 +200,6 @@ bool RH_RF69::init()
     setEncryptionKey(NULL);
     // +13dBm, same as power-on default
     setTxPower(13); 
-#endif
 
     return true;
 }
