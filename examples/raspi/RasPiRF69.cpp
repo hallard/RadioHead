@@ -21,18 +21,63 @@
 
 #include <RH_RF69.h>
 
+// define hardware used change to fit your need
+// Uncomment the board you have, if not listed 
+// uncommment custom board and set wiring tin custom section
+
+// LoRasPi board 
+// see https://github.com/hallard/LoRasPI
+#define BOARD_LORASPI
+
+// iC880A and LinkLab Lora Gateway Shield (if RF module plugged into)
+// see https://github.com/ch2i/iC880A-Raspberry-PI
+//#define BOARD_IC880A_PLATE
+
+// Raspberri PI Lora Gateway BoardiC880A and LinkLab Lora Gateway Shield (if RF module plugged into)
+// see https://github.com/ch2i/iC880A-Raspberry-PI
+//#define BOARD_IC880A_PLATE
+
+// Dragino Raspberry PI hat
+// see https://github.com/dragino/Lora
+//#define BOARD_DRAGINO_PIHAT
+
+#if defined (BOARD_LORASPI)
+#define RF_LED_PIN RPI_V2_GPIO_P1_16 // Led on GPIO23 so P1 connector pin #16
+#define RF_CS_PIN  RPI_V2_GPIO_P1_24 // Slave Select on CE0 so P1 connector pin #24
+#define RF_IRQ_PIN RPI_V2_GPIO_P1_22 // IRQ on GPIO24 so P1 connector pin #22
+
+#elif defined (BOARD_IC880A_PLATE)
+#define RF_LED_PIN RPI_V2_GPIO_P1_18 // Led on GPIO24 so P1 connector pin #18
+#define RF_CS_PIN  RPI_V2_GPIO_P1_24 // Slave Select on CE0 so P1 connector pin #24
+#define RF_IRQ_PIN RPI_V2_GPIO_P1_35 // IRQ on GPIO19 so P1 connector pin #35
+
+#elif defined (BOARD_PI_LORA_GATEWAY)
+#define RF_LED_PIN RPI_V2_GPIO_P1_35 // Led on GPIO19 so P1 connector pin #35
+#define RF_CS_PIN  RPI_V2_GPIO_P1_37 // Slave Select on GPIO26 so P1 connector pin #37
+#define RF_IRQ_PIN RPI_V2_GPIO_P1_16 // IRQ on GPIO23 so P1 connector pin #16
+
+#elif defined (BOARD_DRAGINO_PIHAT)
+#define RF_CS_PIN  RPI_V2_GPIO_P1_31 // Slave Select on GPIO6 so P1 connector pin #31
+#define RF_IRQ_PIN RPI_V2_GPIO_P1_11 // IRQ on GPIO7 so P1 connector pin #11
+
+#elif defined (BOARD_CUSTOM)
+// Define custom pin here
+#define RF_CS_PIN  RPI_V2_GPIO_P1_24 // Slave Select on CE0 so P1 connector pin #24
+#else
+#error "Please define Hardware Board"
+#endif
+
 // Our RFM69 Configuration 
 #define RF_NODE_ID    1
 #define RF_GROUP_ID   69
 #define RF_FREQUENCY  433.00
 
 // Create an instance of a driver
-// Chip enable is pin 22
-// Slave Select is pin 24
-RH_RF69 rf69(RPI_V2_GPIO_P1_22, RPI_V2_GPIO_P1_24);
+RH_RF69 rf69(RF_CS_PIN, RF_IRQ_PIN);
 
 //Flag for Ctrl-C
 volatile sig_atomic_t flag = 0;
+unsigned char cs_pin = 0;
 
 void sig_handler(int sig)
 {
@@ -55,17 +100,35 @@ int main (int argc, const char* argv[] )
 
   if (!bcm2835_init())
   {
-    printf( "\n\nRasPiRF69 Tester Startup Failed\n\n" );
+    printf( "RasPiRF69 bcm2835_init() Failed\n\n" );
     return 1;
   }
 
-  printf( "\nRasPiRF69 Tester Startup\n\n" );
+  /* Wiring Pi
+  if ( SPI.begin(0, 5000000, 0) < 0 )
+  {
+    printf( "RasPiRF69 SPI Setup Failed\r\n" );
+    return 1;
+  }
+  */
+  
+  printf( "RasPiRF69 Tester Startup\r\n" );
+
+  //cs_pin = RF_CS_PIN;
+  //pinMode(cs_pin, OUTPUT);
+  //digitalWrite(cs_pin, 1);
 
   if (!rf69.init()) {
-    Serial.println("init failed");
+    printf( "RF69 module init failed, tried with\r\n" );
+    printf( "RF69 CS  -> GPIO%d\r\n", RF_CS_PIN);
+    printf( "RF69 IRQ -> GPIO%d\r\n", RF_IRQ_PIN );
+    printf( "Please verify wiring\r\n" );
   } else {
+
+    printf( "RF69 module init OK!\r\n" );
+
     // Change default radioHead modem configuration to moteino one
-    rf69.setModemConfig( (RH_RF69::ModemConfigChoice) FSK_MOTEINO);
+    rf69.setModemConfig( (RH_RF69::ModemConfigChoice) RH_RF69::FSK_MOTEINO);
 
     // Set TX power mainly to all stuff if RFM69 or RFMH69
     rf69.setTxPower(13);
@@ -74,24 +137,24 @@ int main (int argc, const char* argv[] )
     rf69.setFrequency( RF_FREQUENCY );
 
     // set Network ID (by sync words)
+    uint8_t syncwords[2];
     syncwords[0] = 0x2d;
     syncwords[1] = RF_GROUP_ID;
     rf69.setSyncWords(syncwords, sizeof(syncwords));
 
     // set Node ID
     rf69.setThisAddress(RF_NODE_ID);  // filtering address when receiving
-    rf69.setHeaderFrom(cRF_NODE_ID);  // Transmit From Node
+    rf69.setHeaderFrom(RF_NODE_ID);  // Transmit From Node
 
     //Begin the main body of code
     while (!flag)
     {
-      uint8_t len = sizeof(buf);
-      uint8_t from, to, id, flags;
 
       if (rf69.available())
       {
         // Should be a message for us now
-        //uint8_t buf[RH_NRF24_MAX_MESSAGE_LEN];
+        uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
+        uint8_t from, to, id, flags;
         uint8_t len = sizeof(buf);
         if (rf69.recv(buf, &len))
         {
