@@ -9,7 +9,7 @@ LIBS          = -lbcm2835
 RADIOHEADBASE = ../..
 INCLUDE       = -I$(RADIOHEADBASE)
 
-all: RasPiRH RasPiRF69
+all: RasPiRH RasPiRF69 RasPiRF95
 
 RasPi.o: $(RADIOHEADBASE)/RHutil/RasPi.cpp
 				$(CC) $(CFLAGS) -c $(RADIOHEADBASE)/RHutil/RasPi.cpp $(INCLUDE)
@@ -20,10 +20,16 @@ RasPiRH.o: RasPiRH.cpp
 RasPiRF69.o: RasPiRF69.cpp
 				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
+RasPiRF95.o: RasPiRF95.cpp
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
+
 RH_NRF24.o: $(RADIOHEADBASE)/RH_NRF24.cpp
 				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RH_RF69.o: $(RADIOHEADBASE)/RH_RF69.cpp
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
+
+RH_RF95.o: $(RADIOHEADBASE)/RH_RF95.cpp
 				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RHMesh.o: $(RADIOHEADBASE)/RHMesh.cpp
@@ -59,6 +65,8 @@ RasPiRH: RasPiRH.o RH_NRF24.o RHMesh.o RHRouter.o RHReliableDatagram.o RHDatagra
 RasPiRF69: RasPiRF69.o RasPi.o RHHardwareSPI.o RH_RF69.o RHSPIDriver.o RHGenericDriver.o RHGenericSPI.o
 				$(CC) $^ $(LIBS) -o RasPiRF69
 
-clean:
-				rm -rf *.o RasPiRH RasPiRF69
+RasPiRF95: RasPiRF95.o RasPi.o RHHardwareSPI.o RH_RF95.o RHSPIDriver.o RHGenericDriver.o RHGenericSPI.o
+				$(CC) $^ $(LIBS) -o RasPiRF95
 
+clean:
+				rm -rf *.o RasPiRH RasPiRF69 RasPiRF95
