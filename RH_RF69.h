@@ -22,10 +22,6 @@
 #ifndef RH_RF69_IRQLESS
 #define RH_RF69_IRQLESS
 #endif
-// No memcpy_P Raspberry PI
-#ifndef memcpy_P
-#define memcpy_P memcpy 
-#endif
 #endif // RH_PLATFORM_RASPI PI
 
 // The crystal oscillator frequency of the RF69 module
