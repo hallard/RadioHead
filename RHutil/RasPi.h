@@ -24,6 +24,11 @@ typedef unsigned char byte;
   #define OUTPUT BCM2835_GPIO_FSEL_OUTP
 #endif
 
+// No memcpy_P Raspberry PI
+#ifndef memcpy_P
+#define memcpy_P memcpy 
+#endif
+
 class SPIClass
 {
   public:
