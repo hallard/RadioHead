@@ -100,32 +100,16 @@ int main (int argc, const char* argv[] )
 
   if (!bcm2835_init())
   {
-    printf( "RasPiRF69 bcm2835_init() Failed\n\n" );
+    fprintf( stderr, "RasPiRF69 bcm2835_init() Failed\n\n" );
     return 1;
   }
 
-  /* Wiring Pi
-  if ( SPI.begin(0, 5000000, 0) < 0 )
-  {
-    printf( "RasPiRF69 SPI Setup Failed\r\n" );
-    return 1;
-  }
-  */
-  
-  printf( "RasPiRF69 Tester Startup\r\n" );
-
-  //cs_pin = RF_CS_PIN;
-  //pinMode(cs_pin, OUTPUT);
-  //digitalWrite(cs_pin, 1);
+  printf( "RF69 listener (CS=GPIO%d, IRQ=GPIO%d)\n", RF_CS_PIN, RF_IRQ_PIN );
 
   if (!rf69.init()) {
-    printf( "RF69 module init failed, tried with\r\n" );
-    printf( "RF69 CS  -> GPIO%d\r\n", RF_CS_PIN);
-    printf( "RF69 IRQ -> GPIO%d\r\n", RF_IRQ_PIN );
-    printf( "Please verify wiring\r\n" );
+    fprintf( stderr, "RF69 module init failed, Please verify wiring/module\n" );
   } else {
-
-    printf( "RF69 module init OK!\r\n" );
+    printf( "RF69 module seen OK!\r\n");
 
     // Change default radioHead modem configuration to moteino one
     rf69.setModemConfig( (RH_RF69::ModemConfigChoice) RH_RF69::FSK_MOTEINO);
@@ -146,33 +130,31 @@ int main (int argc, const char* argv[] )
     rf69.setThisAddress(RF_NODE_ID);  // filtering address when receiving
     rf69.setHeaderFrom(RF_NODE_ID);  // Transmit From Node
 
-    //Begin the main body of code
-    while (!flag)
-    {
+    printf( "RF69 init OK!\nNetworkID=%d NodeID=%d @ %3.2fMHz\n", RF_GROUP_ID, RF_NODE_ID, RF_FREQUENCY );
+    printf( "Listening packet...\n" );
 
-      if (rf69.available())
-      {
+    //Begin the main body of code
+    while (!flag){
+      if (rf69.available()) {
         // Should be a message for us now
         uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
         uint8_t from, to, id, flags;
         uint8_t len = sizeof(buf);
-        if (rf69.recv(buf, &len))
-        {
-          Serial.print("got request: ");
-          Serial.println((char*)buf);
-          Serial.println("");
+
+        if (rf69.recv(buf, &len)) {
+          printf("got request: ");
+          printbuffer(buf, len);
+        } else {
+          printf("recv failed");
         }
-        else
-        {
-          Serial.println("recv failed");
-        }
+        printf("\n");
       }
       //sleep(1);
       delay(25);
     }
   }
 
-  printf( "\nRasPiRF69 Tester Ending\n" );
+  printf( "\nRF69 Ending\n" );
   bcm2835_close();
   return 0;
 }
