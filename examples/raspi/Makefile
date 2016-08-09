@@ -12,53 +12,53 @@ INCLUDE       = -I$(RADIOHEADBASE)
 all: RasPiRH RasPiRF69
 
 RasPi.o: $(RADIOHEADBASE)/RHutil/RasPi.cpp
-        $(CC) $(CFLAGS) -c $(RADIOHEADBASE)/RHutil/RasPi.cpp $(INCLUDE)
+				$(CC) $(CFLAGS) -c $(RADIOHEADBASE)/RHutil/RasPi.cpp $(INCLUDE)
 
 RasPiRH.o: RasPiRH.cpp
-        $(CC) $(CFLAGS) -c $(INCLUDE) $<
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RasPiRF69.o: RasPiRF69.cpp
-        $(CC) $(CFLAGS) -c $(INCLUDE) $<
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RH_NRF24.o: $(RADIOHEADBASE)/RH_NRF24.cpp
-        $(CC) $(CFLAGS) -c $(INCLUDE) $<
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RH_RF69.o: $(RADIOHEADBASE)/RH_RF69.cpp
-        $(CC) $(CFLAGS) -c $(INCLUDE) $<
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RHMesh.o: $(RADIOHEADBASE)/RHMesh.cpp
-        $(CC) $(CFLAGS) -c $(INCLUDE) $<
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RHRouter.o: $(RADIOHEADBASE)/RHRouter.cpp
-        $(CC) $(CFLAGS) -c $(INCLUDE) $<
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RHReliableDatagram.o: $(RADIOHEADBASE)/RHReliableDatagram.cpp
-        $(CC) $(CFLAGS) -c $(INCLUDE) $<
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RHDatagram.o: $(RADIOHEADBASE)/RHDatagram.cpp
-        $(CC) $(CFLAGS) -c $(INCLUDE) $<
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RHHardwareSPI.o: $(RADIOHEADBASE)/RHHardwareSPI.cpp
-        $(CC) $(CFLAGS) -c $(INCLUDE) $<
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RHNRFSPIDriver.o: $(RADIOHEADBASE)/RHNRFSPIDriver.cpp
-        $(CC) $(CFLAGS) -c $(INCLUDE) $<
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RHSPIDriver.o: $(RADIOHEADBASE)/RHSPIDriver.cpp
-        $(CC) $(CFLAGS) -c $(INCLUDE) $<
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RHGenericDriver.o: $(RADIOHEADBASE)/RHGenericDriver.cpp
-        $(CC) $(CFLAGS) -c $(INCLUDE) $<
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RHGenericSPI.o: $(RADIOHEADBASE)/RHGenericSPI.cpp
-        $(CC) $(CFLAGS) -c $(INCLUDE) $<
+				$(CC) $(CFLAGS) -c $(INCLUDE) $<
 
 RasPiRH: RasPiRH.o RH_NRF24.o RHMesh.o RHRouter.o RHReliableDatagram.o RHDatagram.o RasPi.o RHHardwareSPI.o RHNRFSPIDriver.o RHGenericDriver.o RHGenericSPI.o
-        $(CC) $^ $(LIBS) -o RasPiRH
+				$(CC) $^ $(LIBS) -o RasPiRH
 
 RasPiRF69: RasPiRF69.o RasPi.o RHHardwareSPI.o RH_RF69.o RHSPIDriver.o RHGenericDriver.o RHGenericSPI.o
-        $(CC) $^ $(LIBS) -o RasPiRF69
+				$(CC) $^ $(LIBS) -o RasPiRF69
 
 clean:
-        rm -rf *.o RasPiRH RasPiRF69
+				rm -rf *.o RasPiRH RasPiRF69
 
