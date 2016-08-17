@@ -31,11 +31,11 @@ void SPIClass::begin(uint16_t divider, uint8_t bitOrder, uint8_t dataMode)
   setClockDivider(divider);
   setBitOrder(bitOrder);
   setDataMode(dataMode);
-
-  //Set CS pins polarity to low
-  bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, 0);
+	bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE); // RH Library code control CS line
 
   bcm2835_spi_begin();
+
+  //bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE); // RH Library code control CS line
 
   //Initialize a timestamp for millis calculation
   gettimeofday(&RHStartTime, NULL);
@@ -68,15 +68,21 @@ void SPIClass::setClockDivider(uint16_t rate)
 byte SPIClass::transfer(byte _data)
 {
   //Set which CS pin to use for next transfers
-  bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
+  bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE);
   //Transfer 1 byte
+  
+  //printf("SPIClass::transfer(%02X)", _data);
   byte data;
   data = bcm2835_spi_transfer((uint8_t)_data);
+  //printf("=%02X\n", data);
   return data;
 }
 
 void pinMode(unsigned char pin, unsigned char mode)
 {
+  if (pin == NOT_A_PIN)
+    return;
+  
   if (mode == OUTPUT)
   {
     bcm2835_gpio_fsel(pin,BCM2835_GPIO_FSEL_OUTP);
@@ -89,7 +95,17 @@ void pinMode(unsigned char pin, unsigned char mode)
 
 void digitalWrite(unsigned char pin, unsigned char value)
 {
+  if (pin == NOT_A_PIN)
+    return;
+
   bcm2835_gpio_write(pin,value);
+}
+
+unsigned char digitalRead(unsigned char pin) {
+  if (pin == NOT_A_PIN)
+    return 0;
+
+  return bcm2835_gpio_lev(pin);
 }
 
 unsigned long millis()
@@ -119,6 +135,35 @@ long random(long min, long max)
   long diff = max - min;
   long ret = diff * rand() + min;
   return ret;
+}
+
+// Dump a buffer trying to display ASCII or HEX
+// depending on contents
+void printbuffer(uint8_t buff[], int len)
+{
+  int i;
+  bool ascii = true;
+  
+  // Check for only printable characters
+  for (i = 0; i< len; i++) {
+    if ( buff[i]<32 || buff[i]>127) {
+      if (buff[i]!=0 || i!=len-1) {
+        ascii = false; 
+        break;
+      }
+    }
+  }
+
+  // now do real display according to buffer type
+  // note each char one by one because we're not sure 
+  // string will have \0 on the end
+  for (int i = 0; i< len; i++) {
+    if (ascii) {
+      printf("%c", buff[i]);
+    } else {
+      printf(" %02X", buff[i]);
+    }
+  }
 }
 
 void SerialSimulator::begin(int baud)
