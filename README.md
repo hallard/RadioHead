@@ -8,7 +8,10 @@ This is a fork of the original RadioHead Packet Radio library for embedded micro
 ### features added with this fork
 =================================
 
-Here are the features added 
+**Works right out of the box with**
+<img src="https://raw.githubusercontent.com/hallard/LoRasPI/master/images/LoRasPI-on-Pi.jpg" height="40%" width="40%" alt="LoRasPI">   
+<img src="https://raw.githubusercontent.com/hallard/RPI-Lora-Gateway/master/images/RPI-Lora-Gateway-mounted.jpg" height="40%" width="40%" alt="Raspberry PI Lora Gateway/Node">   
+<img src="http://wiki.dragino.com/images/d/d6/Lora_GPS_HAT.png" height="40%" width="40%" alt="Raspberry PI Lora Gateway/Node">   
 
 - Added moteino modem setting on RF69 to be compatible with lowpowerlab RF69 configuration library
 - Added possibility to work with no IRQ connected for RF69 and RF95
@@ -20,7 +23,7 @@ Here are the features added
   - Raspberry PI Lora [Gateway][12] with multiple RFM9x or RFM69HCW shield
   - Dragino Lora [shield][13]
   - Sample code are in [rf95][21], [rf69][20], [nrf24][22] and [multi_server][23], note that old sample NRF24 sample has been moved to nrf24 folder for consistency.
-- Added 2 samples test tools (for Raspberry PI) do detect RF69 and RF95 modules and check IQR rising edge
+- Added 2 samples test tools (for Raspberry PI) do detect RF69 and RF95 modules and check IRQ rising edge
   - [spi_scan][9] sample code, scan and try to detect connected modules
   - [irq_test][8] sample code, check a rising edge on a GPIO
 
@@ -58,7 +61,12 @@ Checking register(0x10) with CS=GPIO26 => Nothing!
 ```
 And voila! with [LoRasPi][10] board RFM95 dedected on SPI with GPIO8 (CE0)
 
-If I'm doing same test with [PI Lora Gateway][12] with 2 RFM95 (one 433MHz and one 868MHz) and one RFMHW69 433MHz on board here are the results when trying to detect the onboard modules:
+board pins definition are set in 
+
+If I'm doing same test with [PI Lora Gateway][12] with 2 RFM95 (one 433MHz and one 868MHz) and one RFMHW69 433MHz on board like this
+<img src="https://raw.githubusercontent.com/hallard/RPI-Lora-Gateway/master/images/RPI-Lora-Gateway-mounted.jpg" height="40%" width="40%" alt="Raspberry PI Lora Gateway/Node">   
+
+here are the results when trying to detect the onboard modules:
 
 ```shell
 root@pi01(rw):~/RadioHead/examples/raspi/spi_scan# ./spi_scan
