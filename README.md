@@ -180,5 +180,5 @@ Like this, I can do Pull Request from [ch2i][4] to [hallard][1] to add new featu
 [22]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/nrf24
 [23]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/multi_server
 [24]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/RasPiBoards.h
-[25]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/rf95/rf95_client
+[25]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/rf95/rf95_client.cpp
 
