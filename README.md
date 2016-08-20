@@ -10,14 +10,11 @@ This is a fork of the original RadioHead Packet Radio library for embedded micro
 
 **Compatible with boards**    
 
-[LoRasPI][10]
-<img src="https://raw.githubusercontent.com/hallard/LoRasPI/master/images/LoRasPI-on-Pi.jpg" height="40%" width="40%" alt="LoRasPI">   
+[LoRasPI][10], [Raspberry PI Lora Gateway][12], [Dragino Lora GPS HAT][13]
 
-[Raspberry PI Lora Gateway][12]
-<img src="https://raw.githubusercontent.com/hallard/RPI-Lora-Gateway/master/images/RPI-Lora-Gateway-mounted.jpg" height="40%" width="40%" alt="Raspberry PI Lora Gateway/Node">   
-
-[Dragino Lora GPS HAT][13]
-<img src="http://wiki.dragino.com/images/d/d6/Lora_GPS_HAT.png" height="40%" width="40%" alt="Raspberry PI Lora Gateway/Node">   
+<img src="https://raw.githubusercontent.com/hallard/LoRasPI/master/images/LoRasPI-on-Pi.jpg" height="25%" width="25%" alt="LoRasPI">&nbsp;
+<img src="https://raw.githubusercontent.com/hallard/RPI-Lora-Gateway/master/images/RPI-Lora-Gateway-mounted.jpg" height="25%" width="25%" alt="Raspberry PI Lora Gateway/Node">&nbsp;
+<img src="http://wiki.dragino.com/images/d/d6/Lora_GPS_HAT.png" height="25%" width="25%" alt="Raspberry PI Lora Gateway/Node">   
 
 - Added moteino modem setting on RF69 to be compatible with lowpowerlab RF69 configuration library
 - Added possibility to work with no IRQ connected for RF69 and RF95
