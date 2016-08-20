@@ -1,4 +1,4 @@
-// RasPiRF95.cpp
+// rf95_server.cpp
 //
 // Example program showing how to use RH_RF95 on Raspberry Pi
 // Uses the bcm2835 library to access the GPIO pins to drive the RFM95 module
@@ -31,9 +31,9 @@
 // see https://github.com/ch2i/iC880A-Raspberry-PI
 //#define BOARD_IC880A_PLATE
 
-// Raspberri PI Lora Gateway BoardiC880A and LinkLab Lora Gateway Shield (if RF module plugged into)
-// see https://github.com/ch2i/iC880A-Raspberry-PI
-//#define BOARD_IC880A_PLATE
+// Raspberri PI Lora Gateway for multiple modules 
+// see https://github.com/hallard/RPI-Lora-Gateway
+//#define BOARD_PI_LORA_GATEWAY
 
 // Dragino Raspberry PI hat
 // see https://github.com/dragino/Lora
@@ -82,9 +82,10 @@ int main (int argc, const char* argv[] )
 
 #ifdef RF_IRQ_PIN
   printf( ", IRQ=GPIO%d", RF_IRQ_PIN );
-  // IRQ Pin input/pull down and rising edge detection
+  // IRQ Pin input/pull down
   pinMode(RF_IRQ_PIN, INPUT);
   bcm2835_gpio_set_pud(RF_IRQ_PIN, BCM2835_GPIO_PUD_DOWN);
+  // Now we can enable Rising edge detection
   bcm2835_gpio_ren(RF_IRQ_PIN);
 #endif
   
@@ -106,8 +107,6 @@ int main (int argc, const char* argv[] )
   if (!rf95.init()) {
     fprintf( stderr, "\nRF95 module init failed, Please verify wiring/module\n" );
   } else {
-    printf( "\nRF95 module seen OK!\r\n");
-    
     // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
 
     // The default transmitter power is 13dBm, using PA_BOOST.
@@ -136,7 +135,10 @@ int main (int argc, const char* argv[] )
     // we're sniffing to display, it's a demo
     rf95.setPromiscuous(true);
 
-    printf( "RF95 init OK @ %3.2fMHz\n", RF_FREQUENCY );
+    // We're ready to listen for incoming message
+    rf95.setModeRx();
+
+    printf( " OK NodeID=%d @ %3.2fMHz\n", RF_NODE_ID, RF_FREQUENCY );
     printf( "Listening packet...\n" );
 
     //Begin the main body of code

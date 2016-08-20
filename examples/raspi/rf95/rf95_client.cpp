@@ -31,9 +31,9 @@
 // see https://github.com/ch2i/iC880A-Raspberry-PI
 //#define BOARD_IC880A_PLATE
 
-// Raspberri PI Lora Gateway BoardiC880A and LinkLab Lora Gateway Shield (if RF module plugged into)
-// see https://github.com/ch2i/iC880A-Raspberry-PI
-//#define BOARD_IC880A_PLATE
+// Raspberri PI Lora Gateway for multiple modules 
+// see https://github.com/hallard/RPI-Lora-Gateway
+//#define BOARD_PI_LORA_GATEWAY
 
 // Dragino Raspberry PI hat
 // see https://github.com/dragino/Lora
@@ -84,11 +84,9 @@ int main (int argc, const char* argv[] )
 
 #ifdef RF_IRQ_PIN
   printf( ", IRQ=GPIO%d", RF_IRQ_PIN );
-  // IRQ Pin input/pull down and rising edge detection
-  // But it's not used in this client send test
+  // IRQ Pin input/pull down 
   pinMode(RF_IRQ_PIN, INPUT);
   bcm2835_gpio_set_pud(RF_IRQ_PIN, BCM2835_GPIO_PUD_DOWN);
-  bcm2835_gpio_ren(RF_IRQ_PIN);
 #endif
   
 #ifdef RF_RST_PIN
@@ -110,7 +108,18 @@ int main (int argc, const char* argv[] )
     fprintf( stderr, "\nRF95 module init failed, Please verify wiring/module\n" );
   } else {
     printf( "\nRF95 module seen OK!\r\n");
-    
+
+#ifdef RF_IRQ_PIN
+    // Since we may check IRQ line with bcm_2835 Rising edge detection
+    // In case radio already have a packet, IRQ is high and will never
+    // go to low so never fire again 
+    // Except if we clear IRQ flags and discard one if any by checking
+    rf95.available();
+
+    // Now we can enable Rising edge detection
+    bcm2835_gpio_ren(RF_IRQ_PIN);
+#endif
+
     // Defaults after init are 434.0MHz, 13dBm, Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on
 
     // The default transmitter power is 13dBm, using PA_BOOST.
