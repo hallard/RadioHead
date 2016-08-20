@@ -118,9 +118,9 @@ My setup has another Raspberry Pi with RFM95 868MHZ [LoRasPI][10] shield running
 
 Here the results starting from scratch
 
-<img src="https://raw.githubusercontent.com/hallard/RPI-Lora-Gateway/master/examples/raspi/pictures/rf95_client.png" alt="RF95 client">    
+<img src="https://raw.githubusercontent.com/hallard/RadioHead/master/examples/raspi/pictures/rf95_client.png" alt="RF95 client">    
 
-<img src="https://raw.githubusercontent.com/hallard/RPI-Lora-Gateway/master/examples/raspi/pictures/multi_server.png" alt="RF95 client">   
+<img src="https://raw.githubusercontent.com/hallard/RadioHead/master/examples/raspi/pictures/multi_server.png" alt="RF95 client">   
 
 It works! 
 
