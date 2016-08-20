@@ -8,20 +8,26 @@ This is a fork of the original RadioHead Packet Radio library for embedded micro
 ### features added with this fork
 =================================
 
-**Works right out of the box with**
+**Compatible with boards**    
+
+[LoRasPI][10]
 <img src="https://raw.githubusercontent.com/hallard/LoRasPI/master/images/LoRasPI-on-Pi.jpg" height="40%" width="40%" alt="LoRasPI">   
+
+[Raspberry PI Lora Gateway][12]
 <img src="https://raw.githubusercontent.com/hallard/RPI-Lora-Gateway/master/images/RPI-Lora-Gateway-mounted.jpg" height="40%" width="40%" alt="Raspberry PI Lora Gateway/Node">   
+
+[Dragino Lora GPS HAT][13]
 <img src="http://wiki.dragino.com/images/d/d6/Lora_GPS_HAT.png" height="40%" width="40%" alt="Raspberry PI Lora Gateway/Node">   
 
 - Added moteino modem setting on RF69 to be compatible with lowpowerlab RF69 configuration library
 - Added possibility to work with no IRQ connected for RF69 and RF95
-  - for example do get one more GPIO free 
-  - on Rasberry Pi, we do not have `attachInterrupt()` like with bcm2835 library
-- Added samples for multiples Raspberry PI boards with RF69 and RF95 modules such as 
-  - Simple RFM9x or RFM69HCW [LoRasPI][10] shield
-  - iC880A or Linklabs Raspberry PI [shield][11] with RFM9x or RFM69HCW onboard 
-  - Raspberry PI Lora [Gateway][12] with multiple RFM9x or RFM69HCW shield
-  - Dragino Lora [shield][13]
+  - for example to get one more GPIO free 
+  - on Raspberry Pi, we do not have `attachInterrupt()` like with bcm2835 library
+- Added samples for multiples Raspberry Pi boards with RF69 and RF95 modules such as 
+  - [LoRasPI][10], simple RFM9x or RFM69HCW shield
+  - [iC880A or Linklabs Raspberry PI shield][11] with RFM9x or RFM69HCW onboard 
+  - [Raspberry PI Lora Gateway][12] with multiple RFM9x or RFM69HCW shield
+  - [Dragino Lora shield][13]
   - Sample code are in [rf95][21], [rf69][20], [nrf24][22] and [multi_server][23], note that old sample NRF24 sample has been moved to nrf24 folder for consistency.
 - Added 2 samples test tools (for Raspberry PI) do detect RF69 and RF95 modules and check IRQ rising edge
   - [spi_scan][9] sample code, scan and try to detect connected modules
@@ -36,6 +42,35 @@ Clone repository
 ```shell
 git clone https://github.com/hallard/RadioHead
 ```
+
+**Connection and pins definition**
+
+Boards pins (Chip Select, IRQ line, Reset and LED) definition are set in the new [RadioHead/examples/raspi/RasPiBoards.h][24] file. In your code, you need to define board used and then, include the file definition like this
+```cpp
+// LoRasPi board 
+#define BOARD_LORASPI
+
+// Now we include RasPi_Boards.h so this will expose defined 
+// constants with CS/IRQ/RESET/on board LED pins definition
+#include "../RasPiBoards.h"
+
+// Your code start here
+#ifdef RF_RST_PIN
+// Blah blah do reset line
+#endif
+
+```
+
+Then in your code you'll have exposed RF_CS_PIN, RF_IRQ_PIN, RF_RST_PIN and RF_LED_PIN and you'll be able to do some `#ifdef RF_LED_LIN` for example. See [rf95_client][https://github.com/hallard/RadioHead/tree/master/examples/raspi/rf95] sample code.
+
+So you have 3 options to define the pins you want 
+
+- The board you have is already defined so just need to define it your source code (as explained above)
+- You can add your board into [RasPiBoards.h][24] and then define it your source code as above
+- You can manually define pins in your code and remove the board definition and `#include "../RasPiBoards.h"`
+
+To go further with examples :
+
 go to example folder here spi_scan
 ```shell
 cd RadioHead/examples/raspi/spi_scan
@@ -61,12 +96,12 @@ Checking register(0x10) with CS=GPIO26 => Nothing!
 ```
 And voila! with [LoRasPi][10] board RFM95 dedected on SPI with GPIO8 (CE0)
 
-board pins definition are set in 
 
-If I'm doing same test with [PI Lora Gateway][12] with 2 RFM95 (one 433MHz and one 868MHz) and one RFMHW69 433MHz on board like this
+If I'm doing same test with [PI Lora Gateway][12] with 2 RFM95 (one 433MHz and one 868MHz) and one RFMHW69 433MHz on board like this    
+
 <img src="https://raw.githubusercontent.com/hallard/RPI-Lora-Gateway/master/images/RPI-Lora-Gateway-mounted.jpg" height="40%" width="40%" alt="Raspberry PI Lora Gateway/Node">   
 
-here are the results when trying to detect the onboard modules:
+Here are the results when trying to detect the onboard modules:
 
 ```shell
 root@pi01(rw):~/RadioHead/examples/raspi/spi_scan# ./spi_scan
@@ -82,7 +117,7 @@ Checking register(0x10) with CS=GPIO26 => SX1231 RFM69 (V=0x24)
 
 Voila! 3 modules are seen, now let's try listenning packets with PI Lora [Gateway][12].
 
-My setup is another Raspberry PI with [RFM95 868MHZ LoRasPI][10] shield running rf95_client sample and some [ULPnode][6] prototypes always running with on board RFM69 configured as Group ID 69 on 433MHz. I don't have a Lora 433MHz sender running so we won't receive anything on this one.
+My setup has another Raspberry Pi with [RFM95 868MHZ LoRasPI][10] shield running `rf95_client` sample and some [ULPnode][6] prototypes always running with on board RFM69 configured as Group ID 69 on 433MHz. I don't have a Lora 433MHz sender running so we won't receive anything on this one.
 
 
 ```shell
@@ -136,15 +171,16 @@ Like this, I can do Pull Request from [ch2i][4] to [hallard][1] to add new featu
 [6]: http://hallard.me/category/ulpnode/ 
 [7]: https://github.com/hallard/RadioHead/tree/master/examples/raspi
 [8]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/irq_test
-[9]: https://github.com/hallard/RadioHead/tree/master/examples/raspispi_scan
+[9]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/spi_scan
 
 [10]: https://github.com/hallard/LoRasPI
 [11]: https://github.com/ch2i/iC880A-Raspberry-PI
 [12]: https://github.com/hallard/RPI-Lora-Gateway
 [13]: https://github.com/dragino/Lora
 
-[20]: https://github.com/hallard/RadioHead/tree/master/examples/rf69
-[21]: https://github.com/hallard/RadioHead/tree/master/examples/rf95
-[22]: https://github.com/hallard/RadioHead/tree/master/examples/nrf24
-[23]: https://github.com/hallard/RadioHead/tree/master/examples/multi_server
+[20]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/rf69
+[21]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/rf95
+[22]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/nrf24
+[23]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/multi_server
+[24]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/RasPiBoards.h
 
