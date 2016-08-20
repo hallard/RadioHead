@@ -1,6 +1,22 @@
-// SPI scan HopeRF device 
-// Version using bcm2835 lib
+// spi_scan.cpp
+//
+// Example program showing how to detect multiple module RH_RF69/RH_RF95 on Raspberry Pi
+// Requires bcm2835 library to be already installed
 // http://www.airspayce.com/mikem/bcm2835/
+// Use the Makefile in this directory:
+// cd example/raspi/spi_scan
+// make
+// sudo ./spi_scan
+//
+// Will check for RFM92/95/96/98 or RFM69/RFM69HCW/RFM69W modules on SPI BUS
+// scan with CS = GPIO6, CE0, CEA and GPIO26
+// So it should detect the following boards
+// LoRasPi board => https://github.com/hallard/LoRasPI
+// RasPI Lora Gateway Board iC880A and LinkLab Lora => https://github.com/ch2i/iC880A-Raspberry-PI
+// Raspberri PI Lora Gateway => https://github.com/hallard/RPI-Lora-Gateway
+// Dragino Raspberry PI hat => https://github.com/dragino/Lora
+//
+// Contributed by Charles-Henri Hallard (hallard.me)
 
 #include <bcm2835.h>
 #include <stdio.h>
@@ -70,6 +86,7 @@ int main(int argc, char **argv)
     // We control CS line manually don't assert CEx line!
     bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE);
 
+    readModuleVersion(  6 ); // GPIO6
     readModuleVersion(  8 ); // CE0
     readModuleVersion(  7 ); // CE1
     readModuleVersion( 26 ); // GPIO26
