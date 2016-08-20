@@ -1,7 +1,7 @@
 // RH_RF24.h
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2014 Mike McCauley
-// $Id: RH_RF24.h,v 1.14 2015/12/11 01:10:24 mikem Exp $
+// $Id: RH_RF24.h,v 1.15 2016/08/17 01:53:21 mikem Exp mikem $
 //
 // Supports RF24/RF26 and RFM24/RFM26 modules in FIFO mode
 // also Si4464/63/62/61/60-A1
@@ -581,7 +581,8 @@
 ///
 /// \par Customising
 ///
-/// The library will work out of the box with the provided examples, over the full frequency range and with
+/// The library will work out of the box with the provided examples on a radio with a 30MHz crystal, 
+/// over the full frequency range and with
 /// a wide range of predefined modem configurations schemes and speeds. However, you may want to 
 /// change the default behaviour of this library. There are several ways you can do this:
 ///
@@ -590,6 +591,8 @@
 /// - Generate a new radio_config_Si4460.h using the Silicon Labs WDS software package
 /// - Write directly to the radio registers and properties using command() and set_properties()
 ///
+/// If your radio module has an XO crystal of other than 30MHz, you can change the value of 
+/// RADIO_CONFIGURATION_DATA_RADIO_XO_FREQ in radio_config_Si4460.h 
 /// \par RSSI
 ///
 /// The RSSI (Received Signal Strength Indicator) is measured and latched after the message sync bytes are received.

@@ -8,4 +8,4 @@ Please read the full documentation and licensing from the original author [site]
 [1]: https://github.com/hallard/RadioHead 
 [2]: https://hallard.me
 [3]: http://www.airspayce.com/mikem/arduino/RadioHead/
-[4]: http://www.airspayce.com/mikem/arduino/RadioHead/RadioHead-1.61.zip
+[4]: http://www.airspayce.com/mikem/arduino/RadioHead/RadioHead-1.62.zip

@@ -391,6 +391,9 @@ bool RH_MRF89::send(const uint8_t* data, uint8_t len)
     waitPacketSent(); // Make sure we dont interrupt an outgoing message
     setModeIdle();
     
+    if (!waitCAD()) 
+	return false;  // Check channel activity
+
     // First octet is the length of the chip payload
     // 0 length messages are transmitted but never trigger a receive!
     spiWriteData(len + RH_MRF89_HEADER_LEN);

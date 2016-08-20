@@ -152,6 +152,11 @@ void RH_RF95::handleInterrupt()
 	_txGood++;
 	setModeIdle();
     }
+    else if (_mode == RHModeCad && irq_flags & RH_RF95_CAD_DONE)
+    {
+        _cad = irq_flags & RH_RF95_CAD_DETECTED;
+        setModeIdle();
+    }
     
     spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
 }
@@ -234,6 +239,9 @@ bool RH_RF95::send(const uint8_t* data, uint8_t len)
 
     waitPacketSent(); // Make sure we dont interrupt an outgoing message
     setModeIdle();
+
+    if (!waitCAD()) 
+	return false;  // Check channel activity
 
     // Position at the beginning of the FIFO
     spiWrite(RH_RF95_REG_0D_FIFO_ADDR_PTR, 0);
@@ -390,5 +398,21 @@ void RH_RF95::setPreambleLength(uint16_t bytes)
 {
     spiWrite(RH_RF95_REG_20_PREAMBLE_MSB, bytes >> 8);
     spiWrite(RH_RF95_REG_21_PREAMBLE_LSB, bytes & 0xff);
+}
+
+bool RH_RF95::isChannelActive()
+{
+    // Set mode RHModeCad
+    if (_mode != RHModeCad)
+    {
+        spiWrite(RH_RF95_REG_01_OP_MODE, RH_RF95_MODE_CAD);
+        spiWrite(RH_RF95_REG_40_DIO_MAPPING1, 0x80); // Interrupt on CadDone
+        _mode = RHModeCad;
+    }
+
+    while (_mode == RHModeCad)
+        YIELD;
+
+    return _cad;
 }
 

@@ -2,7 +2,7 @@
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2011 Mike McCauley
 // Contributed by Joanna Rutkowska
-// $Id: RHHardwareSPI.cpp,v 1.16 2016/07/07 00:02:53 mikem Exp mikem $
+// $Id: RHHardwareSPI.cpp,v 1.16 2016/07/07 00:02:53 mikem Exp $
 
 #include <RHHardwareSPI.h>
 

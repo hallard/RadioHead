@@ -44,6 +44,10 @@ void setup()
   // then you can configure the power transmitter power for -1 to 14 dBm and with useRFO true. 
   // Failure to do that will result in extremely low transmit powers.
 //  driver.setTxPower(14, true);
+  // You can optionally require this module to wait until Channel Activity
+  // Detection shows no activity on the channel before transmitting by setting
+  // the CAD timeout to non-zero:
+//  driver.setCADTimeout(10000);
 }
 
 uint8_t data[] = "And hello back to you";

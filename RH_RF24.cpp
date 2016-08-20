@@ -1,7 +1,7 @@
 // RH_RF24.cpp
 //
 // Copyright (C) 2011 Mike McCauley
-// $Id: RH_RF24.cpp,v 1.16 2016/04/04 01:40:12 mikem Exp $
+// $Id: RH_RF24.cpp,v 1.17 2016/08/17 01:53:21 mikem Exp mikem $
 
 #include <RH_RF24.h>
 // Generated with Silicon Labs WDS software:
@@ -17,11 +17,13 @@ uint8_t RH_RF24::_interruptCount = 0; // Index into _deviceForInterrupt for next
 // which was generated with the Silicon Labs WDS program
 PROGMEM const uint8_t RFM26_CONFIGURATION_DATA[] = RADIO_CONFIGURATION_DATA_ARRAY;
 
-// These configurations were all generated originally by the Silicon LAbs WDS configuration tool.
+// These configurations were all generated originally by the Silicon LAbs WDS configuration tool, configured with
+// a 30MHz XO. 
 // The configurations were imported into RH_RF24, the complete properties set dumped to a file with printRegisters, then 
 // RH_RF24_property_data/convert.pl was used to generate the entry for this table.
 // Contributions of new complete and tested ModemConfigs ready to add to this list will be readily accepted.
-// Casual suggestions of new schemes without working examples will probably be passed over
+// Casual suggestions of new schemes without working examples will probably be passed over.
+// Devices with an XO of other than 30MHz will result in incorrect radio frequency and other settings.
 PROGMEM static const RH_RF24::ModemConfig MODEM_CONFIG_TABLE[] =
 {
     // These were generated with convert.pl from data in RH_RF24_property_data
@@ -344,6 +346,9 @@ bool RH_RF24::send(const uint8_t* data, uint8_t len)
 
     waitPacketSent(); // Make sure we dont interrupt an outgoing message
     setModeIdle(); // Prevent RX while filling the fifo
+
+    if (!waitCAD()) 
+	return false;  // Check channel activity
 
     // Put the payload in the FIFO
     // First the length in fixed length field 1. This wont appear in the receiver fifo since
