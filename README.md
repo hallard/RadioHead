@@ -116,38 +116,12 @@ Voila! 3 modules are seen, now let's try listenning packets with PI Lora [Gatewa
 
 My setup has another Raspberry Pi with RFM95 868MHZ [LoRasPI][10] shield running [`rf95_client`][25] sample and some [ULPnode][6] prototypes always running with on board RFM69 configured as Group ID 69 on 433MHz. I don't have a Lora 433MHz sender running so we won't receive anything on this one.
 
+Here the results starting from scratch
 
-```shell
-root@pi01(rw):~/RadioHead/examples/raspi/spi_scan# cd ../multi_server
-root@pi01(rw):~/RadioHead/examples/raspi/multi_server# make
-root@pi01(rw):~/RadioHead/examples/raspi/multi_server# ./multi_server
-multi_server
-============
-1 RF95 868 (CS=GPIO8, IRQ=GPIO25, RST=GPIO5, LED=GPIO4) OK!, NodeID=1 @ 868.00MHz
-2 RF95 433 (CS=GPIO7, IRQ=GPIO16, RST=GPIO6, LED=GPIO17) OK!, NodeID=1 @ 433.00MHz
-3 RFM69HW 433 (CS=GPIO26, IRQ=GPIO23, RST=GPIO13, LED=GPIO19) OK!, NodeID=1 @ 433.00MHz
-Listening for incoming packets...
-13:34:57 Mod1 RF95 868 [10] #10 => #1 -54dB: Hi Raspi!
-13:35:07 Mod1 RF95 868 [10] #10 => #1 -54dB: Hi Raspi!
-13:35:16 Mod3 RFM69HW 433 [15] #18 => #1 -65dB:  11 20 CA 0B 21 CC 0B 24 EC 09 2C E2 02 40 00
-13:35:17 Mod1 RF95 868 [10] #10 => #1 -54dB: Hi Raspi!
-13:35:27 Mod1 RF95 868 [10] #10 => #1 -53dB: Hi Raspi!
-13:35:37 Mod1 RF95 868 [10] #10 => #1 -54dB: Hi Raspi!
-13:35:43 Mod3 RFM69HW 433 [21] #14 => #1 -60dB:  11 20 3F 04 21 3E 04 24 9C 09 2C 0D 04 40 00 25 9E 09 28 A8 02
-13:35:47 Mod1 RF95 868 [10] #10 => #1 -54dB: Hi Raspi!
-13:35:57 Mod3 RFM69HW 433 [15] #16 => #1 -61dB:  11 20 98 05 21 95 05 24 CE 09 2C 07 04 40 00
-13:35:57 Mod1 RF95 868 [10] #10 => #1 -54dB: Hi Raspi!
-13:36:07 Mod1 RF95 868 [10] #10 => #1 -54dB: Hi Raspi!
-13:36:17 Mod1 RF95 868 [10] #10 => #1 -54dB: Hi Raspi!
-13:36:27 Mod1 RF95 868 [10] #10 => #1 -54dB: Hi Raspi!
-13:36:37 Mod1 RF95 868 [10] #10 => #1 -53dB: Hi Raspi!
-13:36:48 Mod1 RF95 868 [10] #10 => #1 -54dB: Hi Raspi!
-13:36:53 Mod1 RF95 868 [10] #10 => #1 -54dB: Hi Raspi!
-13:36:58 Mod1 RF95 868 [10] #10 => #1 -53dB: Hi Raspi!
-^C
-Break received, exiting!
-root@pi01(rw):~/RadioHead/examples/raspi/multi_server #
-```
+<img src="https://raw.githubusercontent.com/hallard/RPI-Lora-Gateway/master/examples/raspi/pictures/rf95_client.png" alt="RF95 client">    
+
+<img src="https://raw.githubusercontent.com/hallard/RPI-Lora-Gateway/master/examples/raspi/pictures/multi_server.png" alt="RF95 client">   
+
 It works! 
 
 ### Difference with original Author repo
@@ -181,4 +155,5 @@ Like this, I can do Pull Request from [ch2i][4] to [hallard][1] to add new featu
 [23]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/multi_server
 [24]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/RasPiBoards.h
 [25]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/rf95/rf95_client.cpp
+
 
