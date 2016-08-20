@@ -2,11 +2,11 @@
 // Contributed by Charles-Henri Hallard http://hallard.me
 
 // If a pin is not used just define it to NOT_A_PIN
-// or do not defined it, both works
+// or do not define it, both works
 // ie : #define RF_LED_PIN NOT_A_PIN
 
-
 // LoRasPi board 
+//==============
 // see https://github.com/hallard/LoRasPI
 #if defined (BOARD_LORASPI)
 #define RF_LED_PIN RPI_V2_GPIO_P1_16 // Led on GPIO23 so P1 connector pin #16
@@ -16,6 +16,7 @@
 
 
 // Raspberri PI Lora Gateway Board iC880A and LinkLab Lora Gateway Shield (if RF module plugged into)
+// ==================================================================================================
 // see https://github.com/ch2i/iC880A-Raspberry-PI
 #elif defined (BOARD_IC880A_PLATE)
 #define RF_LED_PIN RPI_V2_GPIO_P1_18 // Led on GPIO24 so P1 connector pin #18
@@ -24,6 +25,7 @@
 
 
 // Raspberri PI Lora Gateway for multiple modules 
+// ==============================================
 // see https://github.com/hallard/RPI-Lora-Gateway
 #elif defined (BOARD_PI_LORA_GATEWAY)
 
@@ -32,7 +34,6 @@
 
 // Module 1 on board RFM95 868 MHz (example)
 #define MOD1_LED_PIN RPI_V2_GPIO_P1_07 // Led on GPIO4 so P1 connector pin #7
-//#define MOD1_LED_PIN RPI_V2_GPIO_P1_21 // Led on GPIO19 so P1 connector pin #21
 #define MOD1_CS_PIN  RPI_V2_GPIO_P1_24 // Slave Select on CE0 so P1 connector pin #24
 #define MOD1_IRQ_PIN RPI_V2_GPIO_P1_22 // IRQ on GPIO25 so P1 connector pin #22
 #define MOD1_RST_PIN RPI_V2_GPIO_P1_29 // Reset on GPIO5 so P1 connector pin #29
@@ -49,13 +50,21 @@
 #define MOD3_IRQ_PIN RPI_V2_GPIO_P1_16 // IRQ on GPIO23 so P1 connector pin #16
 #define MOD3_RST_PIN RPI_V2_GPIO_P1_33 // reset on GPIO13 so P1 connector pin #33
 
+// Default set to module 1 (in case used just with one module examples)
+#define RF_LED_PIN MOD1_LED_PIN
+#define RF_CS_PIN  MOD1_CS_PIN
+#define RF_IRQ_PIN MOD1_IRQ_PIN
+#define RF_RST_PIN MOD1_RST_PIN
 
-// Dragino Raspberry PI hat
+// Dragino Raspberry PI hat (no obboard led)
+// =========================================
 // see https://github.com/dragino/Lora
 #elif defined (BOARD_DRAGINO_PIHAT)
-#define RF_CS_PIN  RPI_V2_GPIO_P1_31 // Slave Select on GPIO6 so P1 connector pin #31
-#define RF_IRQ_PIN RPI_V2_GPIO_P1_11 // IRQ on GPIO7 so P1 connector pin #11
+#define RF_CS_PIN  RPI_V2_GPIO_P1_22 // Slave Select on GPIO25 so P1 connector pin #22
+#define RF_IRQ_PIN RPI_V2_GPIO_P1_07 // IRQ on GPIO4 so P1 connector pin #7
+#define RF_RST_PIN RPI_V2_GPIO_P1_11 // Reset on GPIO17 so P1 connector pin #11
+#define RF_LED_PIN NOT_A_PIN				 // No onboard led to drive
 
 #else
-#error "Please define Hardware Board"
+#error "RasPiBoards.h => Please define Hardware Board"
 #endif
