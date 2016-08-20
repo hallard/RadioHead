@@ -134,6 +134,11 @@ int main (int argc, const char* argv[] )
 
     rf95.setTxPower(14, false); 
 
+    // You can optionally require this module to wait until Channel Activity
+    // Detection shows no activity on the channel before transmitting by setting
+    // the CAD timeout to non-zero:
+    //rf95.setCADTimeout(10000);
+
     // Adjust Frequency
     rf95.setFrequency( RF_FREQUENCY );
 

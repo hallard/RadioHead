@@ -15,7 +15,8 @@ RHGenericDriver::RHGenericDriver()
     _txHeaderFlags(0),
     _rxBad(0),
     _rxGood(0),
-    _txGood(0)
+    _txGood(0),
+    _cad_timeout(0)
 {
 }
 
@@ -64,6 +65,34 @@ bool RHGenericDriver::waitPacketSent(uint16_t timeout)
            return true;
 	YIELD;
     }
+    return false;
+}
+
+// Wait until no channel activity detected or timeout
+bool RHGenericDriver::waitCAD()
+{
+    if (!_cad_timeout)
+    return true;
+
+    // Wait for any channel activity to finish or timeout
+    // Sophisticated DCF function...
+    // DCF : BackoffTime = random() x aSlotTime
+    // 100 - 1000 ms
+    // 10 sec timeout
+    unsigned long t = millis();
+    while (isChannelActive())
+    {
+         if (millis() - t > _cad_timeout) 
+         return false;
+         delay(random(1, 10) * 100); // Should these values be configurable? Macros?
+    }
+
+    return true;
+}
+
+// subclasses are expected to override if CAD is available for that radio
+bool RHGenericDriver::isChannelActive()
+{
     return false;
 }
 
@@ -172,6 +201,11 @@ uint16_t RHGenericDriver::rxGood()
 uint16_t RHGenericDriver::txGood()
 {
     return _txGood;
+}
+
+void RHGenericDriver::setCADTimeout(unsigned long cad_timeout)
+{
+    _cad_timeout = cad_timeout;
 }
 
 #if (RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined(RH_PLATFORM_ATTINY)

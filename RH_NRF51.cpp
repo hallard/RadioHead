@@ -166,6 +166,10 @@ bool RH_NRF51::send(const uint8_t* data, uint8_t len)
 {
     if (len > RH_NRF51_MAX_MESSAGE_LEN)
 	return false;
+
+    if (!waitCAD()) 
+    return false;  // Check channel activity
+
     // Set up the headers
     _buf[0] = len + RH_NRF51_HEADER_LEN;
     _buf[1] = _txHeaderTo;

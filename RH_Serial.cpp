@@ -200,6 +200,9 @@ bool RH_Serial::recv(uint8_t* buf, uint8_t* len)
 // Caution: this may block
 bool RH_Serial::send(const uint8_t* data, uint8_t len)
 {
+    if (!waitCAD()) 
+	  return false;  // Check channel activity
+
     _txFcs = 0xffff;    // Initial value
     _serial.write(DLE); // Not in FCS
     _serial.write(STX); // Not in FCS

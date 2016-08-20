@@ -301,6 +301,9 @@ bool RH_CC110::send(const uint8_t* data, uint8_t len)
     waitPacketSent(); // Make sure we dont interrupt an outgoing message
     setModeIdle();
 
+    if (!waitCAD()) 
+    return false;  // Check channel activity
+
     spiWriteRegister(RH_CC110_REG_3F_FIFO, len + RH_CC110_HEADER_LEN);
     spiWriteRegister(RH_CC110_REG_3F_FIFO,_txHeaderTo);
     spiWriteRegister(RH_CC110_REG_3F_FIFO,_txHeaderFrom);

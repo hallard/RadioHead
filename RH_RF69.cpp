@@ -546,6 +546,9 @@ bool RH_RF69::send(const uint8_t* data, uint8_t len)
     waitPacketSent(); // Make sure we dont interrupt an outgoing message
     setModeIdle(); // Prevent RX while filling the fifo
 
+    if (!waitCAD()) 
+    return false;  // Check channel activity
+
     ATOMIC_BLOCK_START;
     digitalWrite(_slaveSelectPin, LOW);
     _spi.transfer(RH_RF69_REG_00_FIFO | RH_RF69_SPI_WRITE_MASK); // Send the start address with the write mask on

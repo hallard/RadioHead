@@ -6,7 +6,7 @@
 //
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2014 Mike McCauley
-// $Id: RH_RF95.h,v 1.11 2016/07/07 00:02:53 mikem Exp mikem $
+// $Id: RH_RF95.h,v 1.12 2016/08/17 01:53:21 mikem Exp mikem $
 // 
 
 #ifndef RH_RF95_h
@@ -547,6 +547,9 @@ public:
     /// introduced in later versions (though we will try to avoid it).
     /// Caution: if you are using slow packet rates and long packets with RHReliableDatagram or subclasses
     /// you may need to change the RHReliableDatagram timeout for reliable operations.
+    /// Caution: for some slow rates nad with ReliableDatagrams youi may need to increase the reply timeout 
+    /// with manager.setTimeout() to
+    /// deal with the long transmission times.
     typedef enum
     {
 	Bw125Cr45Sf128 = 0,	   ///< Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. Default medium range
@@ -619,11 +622,15 @@ public:
     virtual bool    recv(uint8_t* buf, uint8_t* len);
 
     /// Waits until any previous transmit packet is finished being transmitted with waitPacketSent().
+    /// Then optionally waits for Channel Activity Detection (CAD) 
+    /// to show the channnel is clear (if the radio supports CAD) by calling waitCAD().
     /// Then loads a message into the transmitter and starts the transmitter. Note that a message length
     /// of 0 is permitted. 
     /// \param[in] data Array of data to be sent
     /// \param[in] len Number of bytes of data to send
-    /// \return true if the message length was valid and it was correctly queued for transmit
+    /// specify the maximum time in ms to wait. If 0 (the default) do not wait for CAD before transmitting.
+    /// \return true if the message length was valid and it was correctly queued for transmit. Return false
+    /// if CAD was requested and the CAD timeout timed out before clear channel was detected.
     virtual bool    send(const uint8_t* data, uint8_t len);
 
     /// Blocks until the current message (if any) 
@@ -692,6 +699,15 @@ public:
     /// Caution: there is a time penalty as the radio takes a finite time to wake from sleep mode.
     /// \return true if sleep mode was successfully entered.
     virtual bool    sleep();
+
+    // Bent G Christensen (bentor@gmail.com), 08/15/2016
+    /// Use the radio's Channel Activity Detect (CAD) function to detect channel activity.
+    /// Sets the RF95 radio into CAD mode and waits until CAD detection is complete.
+    /// To be used in a listen-before-talk mechanism (Collision Avoidance)
+    /// with a reasonable time backoff algorithm.
+    /// This is called automatically by waitCAD().
+    /// \return true if channel is in use.  
+    virtual bool    isChannelActive();
 
 protected:
     /// This is a low level function to handle the interrupts for one instance of RH_RF95.

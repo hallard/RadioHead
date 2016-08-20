@@ -1,7 +1,7 @@
 // RH_ASK.cpp
 //
 // Copyright (C) 2014 Mike McCauley
-// $Id: RH_ASK.cpp,v 1.18 2016/07/07 00:02:53 mikem Exp mikem $
+// $Id: RH_ASK.cpp,v 1.19 2016/08/17 01:53:21 mikem Exp mikem $
 
 #include <RH_ASK.h>
 #include <RHCRC.h>
@@ -47,7 +47,8 @@ RH_ASK::RH_ASK(uint16_t speed, uint8_t rxPin, uint8_t txPin, uint8_t pttPin, boo
     _rxPin(rxPin),
     _txPin(txPin),
     _pttPin(pttPin),
-    _pttInverted(pttInverted)
+    _pttInverted(pttInverted),
+    _rxInverted(false)
 {
     // Initialise the first 8 nibbles of the tx buffer to be the standard
     // preamble. We will append messages after that. 0x38, 0x2c is the start symbol before
@@ -480,6 +481,9 @@ bool RH_ASK::send(const uint8_t* data, uint8_t len)
 
     // Wait for transmitter to become available
     waitPacketSent();
+
+    if (!waitCAD()) 
+    return false;  // Check channel activity
 
     // Encode the message length
     crc = RHcrc_ccitt_update(crc, count);

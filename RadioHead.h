@@ -1,7 +1,7 @@
 // RadioHead.h
 // Author: Mike McCauley (mikem@airspayce.com) DO NOT CONTACT THE AUTHOR DIRECTLY
 // Copyright (C) 2014 Mike McCauley
-// $Id: RadioHead.h,v 1.56 2016/07/07 00:02:53 mikem Exp mikem $
+// $Id: RadioHead.h,v 1.57 2016/08/17 01:53:21 mikem Exp mikem $
 
 /// \mainpage RadioHead Packet Radio library for embedded microprocessors
 ///
@@ -10,7 +10,7 @@
 /// via a variety of common data radios and other transports on a range of embedded microprocessors.
 ///
 /// The version of the package that this documentation refers to can be downloaded 
-/// from http://www.airspayce.com/mikem/arduino/RadioHead/RadioHead-1.61.zip
+/// from http://www.airspayce.com/mikem/arduino/RadioHead/RadioHead-1.62.zip
 /// You can find the latest version at http://www.airspayce.com/mikem/arduino/RadioHead
 ///
 /// You can also find online help and discussion at 
@@ -662,6 +662,12 @@
 ///              Added support for ESP8266 SPI, provided by David Skinner.
 /// \version 1.61 2016-07-07
 ///              Patch to RH_ASK.cpp for ESP8266, to prevent crashes in interrupt handlers. Patch from Alexander Mamchits.
+/// \version 1.62 2016-08-17
+///              Fixed a problem in RH_ASK where _rxInverted was not properly initialised. Reported by "gno.sun.sop".
+///              Added support for  waitCAD() and isChannelActive() and setCADTimeout() to RHGeneric.
+///              Implementation of RH_RF95::isChannelActive() allows the RF95 module to support
+///              Channel Activity Detection (CAD). Based on code contributed by Bent Guldbjerg Christensen.
+///              Implmentations of isChannelActive() plus documentation for other radio modules wil be welcomed.
 ///
 /// \author  Mike McCauley. DO NOT CONTACT THE AUTHOR DIRECTLY. USE THE MAILING LIST GIVEN ABOVE
 
@@ -670,7 +676,7 @@
 
 // Official version numbers are maintained automatically by Makefile:
 #define RH_VERSION_MAJOR 1
-#define RH_VERSION_MINOR 61
+#define RH_VERSION_MINOR 62
 
 // Symbolic names for currently supported platform types
 #define RH_PLATFORM_ARDUINO          1

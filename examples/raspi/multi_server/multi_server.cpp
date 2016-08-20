@@ -201,6 +201,11 @@ bool initRadioModule( uint8_t index) {
         // Failure to do that will result in extremely low transmit powers.
         // rf95.setTxPower(14, true);
 
+        // You can optionally require this module to wait until Channel Activity
+        // Detection shows no activity on the channel before transmitting by setting
+        // the CAD timeout to non-zero:
+        //rf95.setCADTimeout(10000);
+
         // Adjust Frequency
         ((RH_RF95 *) driver)->setFrequency( MOD_freq[index] );
       break;
