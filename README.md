@@ -58,7 +58,7 @@ Boards pins (Chip Select, IRQ line, Reset and LED) definition are set in the new
 
 ```
 
-Then in your code you'll have exposed RF_CS_PIN, RF_IRQ_PIN, RF_RST_PIN and RF_LED_PIN and you'll be able to do some `#ifdef RF_LED_LIN` for example. See [rf95_client][https://github.com/hallard/RadioHead/tree/master/examples/raspi/rf95] sample code.
+Then in your code you'll have exposed RF_CS_PIN, RF_IRQ_PIN, RF_RST_PIN and RF_LED_PIN and you'll be able to do some `#ifdef RF_LED_LIN` for example. See [rf95_client][25] sample code.
 
 So you have 3 options to define the pins you want 
 
@@ -114,7 +114,7 @@ Checking register(0x10) with CS=GPIO26 => SX1231 RFM69 (V=0x24)
 
 Voila! 3 modules are seen, now let's try listenning packets with PI Lora [Gateway][12].
 
-My setup has another Raspberry Pi with [RFM95 868MHZ LoRasPI][10] shield running `rf95_client` sample and some [ULPnode][6] prototypes always running with on board RFM69 configured as Group ID 69 on 433MHz. I don't have a Lora 433MHz sender running so we won't receive anything on this one.
+My setup has another Raspberry Pi with RFM95 868MHZ [LoRasPI][10] shield running [`rf95_client`][25] sample and some [ULPnode][6] prototypes always running with on board RFM69 configured as Group ID 69 on 433MHz. I don't have a Lora 433MHz sender running so we won't receive anything on this one.
 
 
 ```shell
@@ -180,4 +180,5 @@ Like this, I can do Pull Request from [ch2i][4] to [hallard][1] to add new featu
 [22]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/nrf24
 [23]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/multi_server
 [24]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/RasPiBoards.h
+[25]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/rf95/rf95_client
 
