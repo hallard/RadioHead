@@ -1,7 +1,16 @@
-// IRQ test for HopeRF device 
-// Version using bcm2835 lib
+// irq_test.cpp
+//
+// Example program showing how to use multiple module RH_RF69/RH_RF95 on Raspberry Pi
+// Requires bcm2835 library to be already installed
 // http://www.airspayce.com/mikem/bcm2835/
-
+// Use the Makefile in this directory:
+// cd example/raspi/irq_test
+// make
+// sudo ./irq_test
+//
+// Will check for rising edge on RF_IRQ_PIN defined below
+//
+// Contributed by Charles-Henri Hallard (hallard.me)
 #include <bcm2835.h>
 #include <stdio.h>
 
@@ -14,7 +23,7 @@ int main(int argc, char **argv)
   if (!bcm2835_init())
     return 1;
   
-  // Set RPI pin P1-15 to be an input
+  // Set RPI pin to be an input
   bcm2835_gpio_fsel(RF_IRQ_PIN, BCM2835_GPIO_FSEL_INPT);
   //  with a puldown
   bcm2835_gpio_set_pud(RF_IRQ_PIN, BCM2835_GPIO_PUD_DOWN);
@@ -22,13 +31,14 @@ int main(int argc, char **argv)
   bcm2835_gpio_ren(RF_IRQ_PIN);
   
   while (1) {
+    // we got it ?
     if (bcm2835_gpio_eds(RF_IRQ_PIN)) {
       // Now clear the eds flag by setting it to 1
       bcm2835_gpio_set_eds(RF_IRQ_PIN);
       printf("Rising event detect for pin GPIO%d\n", RF_IRQ_PIN);
     }
     // wait a bit
-    bcm2835_delay(10); 
+    bcm2835_delay(5); 
   }
   
   bcm2835_close();
