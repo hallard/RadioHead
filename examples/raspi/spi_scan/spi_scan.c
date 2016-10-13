@@ -9,7 +9,7 @@
 // sudo ./spi_scan
 //
 // Will check for RFM92/95/96/98 or RFM69/RFM69HCW/RFM69W modules on SPI BUS
-// scan with CS = GPIO6, CE0, CEA and GPIO26
+// scan with CS = GPIO6, CE0, CE1 and GPIO26
 // So it should detect the following boards
 // LoRasPi board => https://github.com/hallard/LoRasPI
 // RasPI Lora Gateway Board iC880A and LinkLab Lora => https://github.com/ch2i/iC880A-Raspberry-PI
@@ -57,21 +57,18 @@ void getModuleName(uint8_t version)
 void readModuleVersion(uint8_t cs_pin)
 {
   uint8_t version;
-  // CS line as output
-  bcm2835_gpio_fsel(cs_pin, BCM2835_GPIO_FSEL_OUTP);
 
-  // RFM9x version
-  printf("Checking register(0x%02X) with CS=GPIO%02d", RH_RF95_REG_42_VERSION, cs_pin);
-  getModuleName( readRegister( cs_pin, RH_RF95_REG_42_VERSION) );
+  // RFM9x version is reg 0x42
+  printf("Checking register(0x42) with CS=GPIO%02d", cs_pin);
+  getModuleName( readRegister( cs_pin, 0x42) );
 
-  // RFM69 version
-  printf("Checking register(0x%02X) with CS=GPIO%02d", RH_RF69_REG_10_VERSION, cs_pin);
-  getModuleName ( readRegister( cs_pin, RH_RF69_REG_10_VERSION)) ;
+  // RFM69 version is reg 0x10
+  printf("Checking register(0x10) with CS=GPIO%02d", cs_pin);
+  getModuleName ( readRegister( cs_pin, 0x10) ) ;
 }
 
 int main(int argc, char **argv)
 {
-
   if (!bcm2835_init()) {
     printf("bcm2835_init failed. Are you running as root??\n");
 
@@ -79,6 +76,12 @@ int main(int argc, char **argv)
     printf("bcm2835_spi_begin failed\n");
 
   } else {
+    // List of all CS line where module can be connected
+    // GPIO6, GPIO8/CE0, GPIO7/CE1, GPIO26
+    uint8_t CS_pins[] = {6, 7, 8, 26};
+    uint8_t i;
+
+    // Init SPI
     bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);      // The default
     bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);                   // The default
     bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_65536); // The default
@@ -86,10 +89,16 @@ int main(int argc, char **argv)
     // We control CS line manually don't assert CEx line!
     bcm2835_spi_chipSelect(BCM2835_SPI_CS_NONE);
 
-    readModuleVersion(  6 ); // GPIO6
-    readModuleVersion(  8 ); // CE0
-    readModuleVersion(  7 ); // CE1
-    readModuleVersion( 26 ); // GPIO26
+    // Drive all CS line as output and set them High to avoid any conflict
+    for ( i=0; i<sizeof(CS_pins); i++) {
+      bcm2835_gpio_fsel (CS_pins[i], BCM2835_GPIO_FSEL_OUTP );
+      bcm2835_gpio_write(CS_pins[i], 1 );
+    }
+
+    // Now try to detect all modules
+    for ( i=0; i<sizeof(CS_pins); i++) {
+      readModuleVersion( CS_pins[i] ); 
+    }
 
     bcm2835_spi_end();
   }
