@@ -17,10 +17,14 @@
 // Singleton instance of the radio driver
 RH_RF69 rf69;
 //RH_RF69 rf69(15, 16); // For RF69 on PJRC breakout board with Teensy 3.1
+//RH_RF69 rf69(4, 2); // For MoteinoMEGA https://lowpowerlab.com/shop/moteinomega
+//RH_RF69 rf69(8, 7); // Adafruit Feather 32u4
 
 void setup() 
 {
   Serial.begin(9600);
+  while (!Serial) 
+    ;
   if (!rf69.init())
     Serial.println("init failed");
   // Defaults after init are 434.0MHz, modulation GFSK_Rb250Fd250, +13dbM
