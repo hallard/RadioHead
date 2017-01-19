@@ -602,6 +602,13 @@ public:
     /// \return true if index is a valid choice.
     bool        setModemConfig(ModemConfigChoice index);
 
+    /// Get the values of one of the predefined modem configurations.
+    /// 
+    /// \param[in] index The configuration choice.
+    /// \param[in] config A ModemConfig structure that will contains values of the modem configuration values.
+    /// \return true if index is a valid choice and config has been filled with values
+    bool        getModemConfig(ModemConfigChoice index, ModemConfig* config);
+
     /// Tests whether a new message is available
     /// from the Driver. 
     /// On most drivers, this will also put the Driver into RHModeRx mode until

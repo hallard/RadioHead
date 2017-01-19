@@ -472,6 +472,19 @@ bool RH_RF95::setModemConfig(ModemConfigChoice index)
     return true;
 }
 
+// Return the  Modem configs
+bool RH_RF95::getModemConfig(ModemConfigChoice index, ModemConfig* config)
+{
+  if (index > (signed int)(sizeof(MODEM_CONFIG_TABLE) / sizeof(ModemConfig)))
+    return false;
+
+  memcpy_P(config, &MODEM_CONFIG_TABLE[index], sizeof(RH_RF95::ModemConfig));
+
+  return true;
+}
+
+
+
 void RH_RF95::setPreambleLength(uint16_t bytes)
 {
     spiWrite(RH_RF95_REG_20_PREAMBLE_MSB, bytes >> 8);
