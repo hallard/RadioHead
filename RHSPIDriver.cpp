@@ -30,6 +30,7 @@ bool RHSPIDriver::init()
 uint8_t RHSPIDriver::spiRead(uint8_t reg)
 {
     uint8_t val;
+    RPI_CE0_CE1_FIX;
     ATOMIC_BLOCK_START;
     digitalWrite(_slaveSelectPin, LOW);
     _spi.transfer(reg & ~RH_SPI_WRITE_MASK); // Send the address with the write mask off
@@ -42,6 +43,7 @@ uint8_t RHSPIDriver::spiRead(uint8_t reg)
 uint8_t RHSPIDriver::spiWrite(uint8_t reg, uint8_t val)
 {
     uint8_t status = 0;
+    RPI_CE0_CE1_FIX;
     ATOMIC_BLOCK_START;
     digitalWrite(_slaveSelectPin, LOW);
     status = _spi.transfer(reg | RH_SPI_WRITE_MASK); // Send the address with the write mask on
@@ -54,6 +56,7 @@ uint8_t RHSPIDriver::spiWrite(uint8_t reg, uint8_t val)
 uint8_t RHSPIDriver::spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len)
 {
     uint8_t status = 0;
+    RPI_CE0_CE1_FIX;
     ATOMIC_BLOCK_START;
     digitalWrite(_slaveSelectPin, LOW);
     status = _spi.transfer(reg & ~RH_SPI_WRITE_MASK); // Send the start address with the write mask off
@@ -67,6 +70,7 @@ uint8_t RHSPIDriver::spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len)
 uint8_t RHSPIDriver::spiBurstWrite(uint8_t reg, const uint8_t* src, uint8_t len)
 {
     uint8_t status = 0;
+    RPI_CE0_CE1_FIX;
     ATOMIC_BLOCK_START;
     digitalWrite(_slaveSelectPin, LOW);
     status = _spi.transfer(reg | RH_SPI_WRITE_MASK); // Send the start address with the write mask on
@@ -81,3 +85,4 @@ void RHSPIDriver::setSlaveSelectPin(uint8_t slaveSelectPin)
 {
     _slaveSelectPin = slaveSelectPin;
 }
+ 

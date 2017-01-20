@@ -12,6 +12,22 @@
 // This is the bit in the SPI address that marks it as a write
 #define RH_SPI_WRITE_MASK 0x80
 
+#if (RH_PLATFORM == RH_PLATFORM_RASPI)
+#define RPI_CE0_CE1_FIX { \
+          if (_slaveSelectPin!=7) {   \
+            bcm2835_gpio_fsel(7,BCM2835_GPIO_FSEL_OUTP); \
+            bcm2835_gpio_write(7,HIGH); \
+          }                           \
+          if (_slaveSelectPin!=8) {   \
+            bcm2835_gpio_fsel(8,BCM2835_GPIO_FSEL_OUTP); \
+            bcm2835_gpio_write(8,HIGH); \
+          }                           \
+        }
+#else
+#define RPI_CE0_CE1_FIX {}
+#endif
+
+
 class RHGenericSPI;
 
 /////////////////////////////////////////////////////////////////////

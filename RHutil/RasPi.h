@@ -24,6 +24,19 @@ typedef unsigned char byte;
   #define OUTPUT BCM2835_GPIO_FSEL_OUTP
 #endif
 
+#ifndef INPUT
+  #define INPUT BCM2835_GPIO_FSEL_INPT
+#endif
+
+#ifndef NOT_A_PIN
+  #define NOT_A_PIN 0xFF
+#endif
+
+// No memcpy_P Raspberry PI
+#ifndef memcpy_P
+#define memcpy_P memcpy 
+#endif
+
 class SPIClass
 {
   public:
@@ -66,10 +79,14 @@ void pinMode(unsigned char pin, unsigned char mode);
 
 void digitalWrite(unsigned char pin, unsigned char value);
 
+unsigned char digitalRead(unsigned char pin) ;
+
 unsigned long millis();
 
 void delay (unsigned long delay);
 
 long random(long min, long max);
+
+void printbuffer(uint8_t buff[], int len);
 
 #endif

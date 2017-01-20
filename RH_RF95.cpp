@@ -8,8 +8,10 @@
 // Interrupt vectors for the 3 Arduino interrupt pins
 // Each interrupt can be handled by a different instance of RH_RF95, allowing you to have
 // 2 or more LORAs per Arduino
+#ifndef RH_RF95_IRQLESS
 RH_RF95* RH_RF95::_deviceForInterrupt[RH_RF95_NUM_INTERRUPTS] = {0, 0, 0};
 uint8_t RH_RF95::_interruptCount = 0; // Index into _deviceForInterrupt for next device
+#endif
 
 // These are indexed by the values of ModemConfigChoice
 // Stored in flash (program) memory to save SRAM
@@ -28,15 +30,21 @@ RH_RF95::RH_RF95(uint8_t slaveSelectPin, uint8_t interruptPin, RHGenericSPI& spi
     RHSPIDriver(slaveSelectPin, spi),
     _rxBufValid(0)
 {
+#ifndef RH_RF95_IRQLESS
     _interruptPin = interruptPin;
     _myInterruptIndex = 0xff; // Not allocated yet
+#endif
 }
 
 bool RH_RF95::init()
 {
+    /// The reported device version
+    uint8_t deviceVersion;
+
     if (!RHSPIDriver::init())
 	return false;
 
+#ifndef RH_RF95_IRQLESS
     // Determine the interrupt number that corresponds to the interruptPin
     int interruptNumber = digitalPinToInterrupt(_interruptPin);
     if (interruptNumber == NOT_AN_INTERRUPT)
@@ -44,9 +52,16 @@ bool RH_RF95::init()
 #ifdef RH_ATTACHINTERRUPT_TAKES_PIN_NUMBER
     interruptNumber = _interruptPin;
 #endif
+#endif // ndef RH_RF95_IRQLESS
 
-    // No way to check the device type :-(
-    
+    // Get the device type and check it
+    // This also tests whether we are really connected to a device
+    // My test devices return 0x83
+    deviceVersion = spiRead(RH_RF95_REG_42_VERSION);
+    if (deviceVersion == 00 ||
+    deviceVersion == 0xff)
+    return false;
+
     // Set sleep mode, so we can also set LORA mode:
     spiWrite(RH_RF95_REG_01_OP_MODE, RH_RF95_MODE_SLEEP | RH_RF95_LONG_RANGE_MODE);
     delay(10); // Wait for sleep mode to take over from say, CAD
@@ -56,6 +71,8 @@ bool RH_RF95::init()
 //	Serial.println(spiRead(RH_RF95_REG_01_OP_MODE), HEX);
 	return false; // No device present?
     }
+
+#ifndef RH_RF95_IRQLESS
 
     // Add by Adrien van den Bossche <vandenbo@univ-tlse2.fr> for Teensy
     // ARM M4 requires the below. else pin interrupt doesn't work properly.
@@ -85,6 +102,9 @@ bool RH_RF95::init()
 	attachInterrupt(interruptNumber, isr2, RISING);
     else
 	return false; // Too many devices, not enough interrupt vectors
+
+#endif // ndef RH_RF95_IRQLESS
+
 
     // Set up FIFO
     // We configure so that we can use the entire 256 byte FIFO for either receive
@@ -118,6 +138,7 @@ bool RH_RF95::init()
 // On MiniWirelessLoRa, only one of the several interrupt lines (DI0) from the RFM95 is usefuly 
 // connnected to the processor.
 // We use this to get RxDone and TxDone interrupts
+#ifndef RH_RF95_IRQLESS
 void RH_RF95::handleInterrupt()
 {
     // Read the interrupt register
@@ -160,10 +181,12 @@ void RH_RF95::handleInterrupt()
     
     spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
 }
+#endif // ndef RH_RF95_IRQLESS
 
 // These are low level functions that call the interrupt handler for the correct
 // instance of RH_RF95.
 // 3 interrupts allows us to have 3 different devices
+#ifndef RH_RF95_IRQLESS
 void RH_RF95::isr0()
 {
     if (_deviceForInterrupt[0])
@@ -179,6 +202,7 @@ void RH_RF95::isr2()
     if (_deviceForInterrupt[2])
 	_deviceForInterrupt[2]->handleInterrupt();
 }
+#endif // ndef RH_RF95_IRQLESS
 
 // Check whether the latest received message is complete and uncorrupted
 void RH_RF95::validateRxBuf()
@@ -201,6 +225,40 @@ void RH_RF95::validateRxBuf()
 
 bool RH_RF95::available()
 {
+#ifdef RH_RF95_IRQLESS
+    // Read the interrupt register
+    uint8_t irq_flags = spiRead(RH_RF95_REG_12_IRQ_FLAGS);
+    if (_mode == RHModeRx && irq_flags & RH_RF95_RX_DONE)
+    {
+    // Have received a packet
+    uint8_t len = spiRead(RH_RF95_REG_13_RX_NB_BYTES);
+
+    // Reset the fifo read ptr to the beginning of the packet
+    spiWrite(RH_RF95_REG_0D_FIFO_ADDR_PTR, spiRead(RH_RF95_REG_10_FIFO_RX_CURRENT_ADDR));
+    spiBurstRead(RH_RF95_REG_00_FIFO, _buf, len);
+    _bufLen = len;
+    spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
+
+    // Remember the RSSI of this packet
+    // this is according to the doc, but is it really correct?
+    // weakest receiveable signals are reported RSSI at about -66
+    _lastRssi = spiRead(RH_RF95_REG_1A_PKT_RSSI_VALUE) - 137;
+
+    // We have received a message.
+    validateRxBuf(); 
+    if (_rxBufValid)
+        setModeIdle(); // Got one 
+    }
+    else if (_mode == RHModeCad && irq_flags & RH_RF95_CAD_DONE)
+    {
+        _cad = irq_flags & RH_RF95_CAD_DETECTED;
+        setModeIdle();
+    }
+    
+    spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
+
+#endif // defined RH_RF95_IRQLESS
+
     if (_mode == RHModeTx)
 	return false;
     setModeRx();
@@ -258,6 +316,26 @@ bool RH_RF95::send(const uint8_t* data, uint8_t len)
     // when Tx is done, interruptHandler will fire and radio mode will return to STANDBY
     return true;
 }
+
+#ifdef RH_RF95_IRQLESS
+// Since we have no interrupts, we need to implement our own 
+// waitPacketSent for the driver by reading RF69 internal register
+bool RH_RF95::waitPacketSent()
+{
+    // If we are not currently in transmit mode, there is no packet to wait for
+    if (_mode != RHModeTx)
+    return false;
+
+    while (!(spiRead(RH_RF95_REG_12_IRQ_FLAGS) & RH_RF95_TX_DONE)){
+      YIELD;
+    }
+
+    // A transmitter message has been fully sent
+    _txGood++;
+    setModeIdle(); // Clears FIFO
+    return true;
+}
+#endif // defined RH_RF95_IRQLESS
 
 bool RH_RF95::printRegisters()
 {
@@ -393,6 +471,19 @@ bool RH_RF95::setModemConfig(ModemConfigChoice index)
 
     return true;
 }
+
+// Return the  Modem configs
+bool RH_RF95::getModemConfig(ModemConfigChoice index, ModemConfig* config)
+{
+  if (index > (signed int)(sizeof(MODEM_CONFIG_TABLE) / sizeof(ModemConfig)))
+    return false;
+
+  memcpy_P(config, &MODEM_CONFIG_TABLE[index], sizeof(RH_RF95::ModemConfig));
+
+  return true;
+}
+
+
 
 void RH_RF95::setPreambleLength(uint16_t bytes)
 {

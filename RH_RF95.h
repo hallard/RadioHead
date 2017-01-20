@@ -14,6 +14,18 @@
 
 #include <RHSPIDriver.h>
 
+// If you don't want to use interupts (mainly to win one I/O pin) then
+// you just need to uncomment this line, if you're on Raspberry PI 
+// it will be set automaticly below
+//#define RH_RF69_IRQLESS
+
+#if (RH_PLATFORM == RH_PLATFORM_RASPI)
+// No IRQ used on Raspberry PI
+#ifndef RH_RF95_IRQLESS
+#define RH_RF95_IRQLESS
+#endif
+#endif // RH_PLATFORM_RASPI PI
+
 // This is the maximum number of interrupts the driver can support
 // Most Arduinos can handle 2, Megas can handle more
 #define RH_RF95_NUM_INTERRUPTS 3
@@ -616,6 +628,13 @@ public:
     /// \return true if index is a valid choice.
     bool        setModemConfig(ModemConfigChoice index);
 
+    /// Get the values of one of the predefined modem configurations.
+    /// 
+    /// \param[in] index The configuration choice.
+    /// \param[in] config A ModemConfig structure that will contains values of the modem configuration values.
+    /// \return true if index is a valid choice and config has been filled with values
+    bool        getModemConfig(ModemConfigChoice index, ModemConfig* config);
+
     /// Tests whether a new message is available
     /// from the Driver. 
     /// On most drivers, this will also put the Driver into RHModeRx mode until
@@ -646,6 +665,13 @@ public:
     /// \return true if the message length was valid and it was correctly queued for transmit. Return false
     /// if CAD was requested and the CAD timeout timed out before clear channel was detected.
     virtual bool    send(const uint8_t* data, uint8_t len);
+
+    /// Blocks until the current message (if any) 
+    /// has been transmitted
+    /// \return true on success, false if the chip is not in transmit mode or other transmit failure
+#ifdef RH_RF95_IRQLESS
+    virtual bool   waitPacketSent();
+#endif
 
     /// Sets the length of the preamble
     /// in bytes. 
@@ -729,7 +755,9 @@ protected:
     /// This is a low level function to handle the interrupts for one instance of RH_RF95.
     /// Called automatically by isr*()
     /// Should not need to be called by user code.
+#ifndef RH_RF95_IRQLESS
     void           handleInterrupt();
+#endif
 
     /// Examine the revceive buffer to determine whether the message is for this node
     void validateRxBuf();
@@ -738,6 +766,8 @@ protected:
     void clearRxBuf();
 
 private:
+
+#ifndef RH_RF95_IRQLESS
     /// Low level interrupt service routine for device connected to interrupt 0
     static void         isr0();
 
@@ -759,6 +789,8 @@ private:
     /// The index into _deviceForInterrupt[] for this device (if an interrupt is already allocated)
     /// else 0xff
     uint8_t             _myInterruptIndex;
+
+#endif
 
     /// Number of octets in the buffer
     volatile uint8_t    _bufLen;

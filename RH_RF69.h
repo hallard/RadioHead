@@ -12,6 +12,18 @@
 #include <RHGenericSPI.h>
 #include <RHSPIDriver.h>
 
+// If you don't want to use interupts (mainly to win one I/O pin) then
+// you just need to uncomment this line, if you're on Raspberry PI 
+// it will be set automaticly below
+//#define RH_RF69_IRQLESS
+
+#if (RH_PLATFORM == RH_PLATFORM_RASPI)
+// No IRQ used on Raspberry PI
+#ifndef RH_RF69_IRQLESS
+#define RH_RF69_IRQLESS
+#endif
+#endif // RH_PLATFORM_RASPI PI
+
 // The crystal oscillator frequency of the RF69 module
 #define RH_RF69_FXOSC 32000000.0
 
@@ -262,6 +274,19 @@
 #define RH_RF69_FIFOTHRESH_FIFOTHRESHOLD                    0x7f
 
 // RH_RF69_REG_3D_PACKETCONFIG2
+#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_1BIT           0x00  // Default
+#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_2BITS          0x10
+#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_4BITS          0x20
+#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_8BITS          0x30
+#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_16BITS         0x40
+#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_32BITS         0x50
+#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_64BITS         0x60
+#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_128BITS        0x70
+#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_256BITS        0x80
+#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_512BITS        0x90
+#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_1024BITS       0xA0
+#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_2048BITS       0xB0
+#define RH_RF69_PACKETCONFIG2_RXRESTARTDELAY_NONE           0xC0
 #define RH_RF69_PACKETCONFIG2_INTERPACKETRXDELAY            0xf0
 #define RH_RF69_PACKETCONFIG2_RESTARTRX                     0x04
 #define RH_RF69_PACKETCONFIG2_AUTORXRESTARTON               0x02
@@ -679,6 +704,7 @@ public:
 	FSK_Rb125Fd125,    ///< FSK, Whitening, Rb = 125kbs,  Fd = 125kHz
 	FSK_Rb250Fd250,    ///< FSK, Whitening, Rb = 250kbs,  Fd = 250kHz
 	FSK_Rb55555Fd50,   ///< FSK, Whitening, Rb = 55555kbs,Fd = 50kHz for RFM69 lib compatibility
+	FSK_MOTEINO,       ///< FSK, No Whitening, Rb = 55555kbs,Fd = 50kHz, No DC-Free for RFM69 lib compatibility
 
 	GFSK_Rb2Fd5,	    ///< GFSK, Whitening, Rb = 2kbs,    Fd = 5kHz
 	GFSK_Rb2_4Fd4_8,    ///< GFSK, Whitening, Rb = 2.4kbs,  Fd = 4.8kHz
@@ -796,6 +822,13 @@ public:
     /// \return true if index is a valid choice.
     bool        setModemConfig(ModemConfigChoice index);
 
+    /// Get the values of one of the predefined modem configurations.
+    /// 
+    /// \param[in] index The configuration choice.
+    /// \param[in] config A ModemConfig structure that will contains values of the modem configuration values.
+    /// \return true if index is a valid choice and config has been filled with values
+    bool        getModemConfig(ModemConfigChoice index, ModemConfig* config);
+
     /// Starts the receiver and checks whether a received message is available.
     /// This can be called multiple times in a timeout loop
     /// \return true if a complete, valid message has been received and is able to be retrieved by
@@ -820,6 +853,13 @@ public:
     /// \param[in] len Number of bytes of data to send (> 0)
     /// \return true if the message length was valid and it was correctly queued for transmit
     bool        send(const uint8_t* data, uint8_t len);
+
+    /// Blocks until the current message (if any) 
+    /// has been transmitted
+    /// \return true on success, false if the chip is not in transmit mode or other transmit failure
+#ifdef RH_RF69_IRQLESS
+    virtual bool   waitPacketSent();
+#endif
 
     /// Sets the length of the preamble
     /// in bytes. 
@@ -887,13 +927,18 @@ protected:
     /// This is a low level function to handle the interrupts for one instance of RF69.
     /// Called automatically by isr*()
     /// Should not need to be called by user code.
+#ifndef RH_RF69_IRQLESS
     void           handleInterrupt();
+#endif
 
     /// Low level function to read the FIFO and put the received data into the receive buffer
     /// Should not need to be called by user code.
     void           readFifo();
 
 protected:
+
+#ifndef RH_RF69_IRQLESS
+
     /// Low level interrupt service routine for RF69 connected to interrupt 0
     static void         isr0();
 
@@ -915,6 +960,8 @@ protected:
     /// The index into _deviceForInterrupt[] for this device (if an interrupt is already allocated)
     /// else 0xff
     uint8_t             _myInterruptIndex;
+
+#endif
 
     /// The radio OP mode to use when mode is RHModeIdle
     uint8_t             _idleMode; 
