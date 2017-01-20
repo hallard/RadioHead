@@ -6,7 +6,7 @@
 //
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2014 Mike McCauley
-// $Id: RH_RF95.h,v 1.12 2016/08/17 01:53:21 mikem Exp mikem $
+// $Id: RH_RF95.h,v 1.14 2017/01/13 01:29:36 mikem Exp mikem $
 // 
 
 #ifndef RH_RF95_h
@@ -111,6 +111,7 @@
 // RH_RF95_REG_01_OP_MODE                             0x01
 #define RH_RF95_LONG_RANGE_MODE                       0x80
 #define RH_RF95_ACCESS_SHARED_REG                     0x40
+#define RH_RF95_LOW_FREQUENCY_MODE                    0x08
 #define RH_RF95_MODE                                  0x07
 #define RH_RF95_MODE_SLEEP                            0x00
 #define RH_RF95_MODE_STDBY                            0x01
@@ -152,9 +153,17 @@
 
 // RH_RF95_REG_0C_LNA                                 0x0c
 #define RH_RF95_LNA_GAIN                              0xe0
-#define RH_RF95_LNA_BOOST                             0x03
-#define RH_RF95_LNA_BOOST_DEFAULT                     0x00
-#define RH_RF95_LNA_BOOST_150PC                       0x11
+#define RH_RF95_LNA_GAIN_G1                           0x20
+#define RH_RF95_LNA_GAIN_G2                           0x40
+#define RH_RF95_LNA_GAIN_G3                           0x60                
+#define RH_RF95_LNA_GAIN_G4                           0x80
+#define RH_RF95_LNA_GAIN_G5                           0xa0
+#define RH_RF95_LNA_GAIN_G6                           0xc0
+#define RH_RF95_LNA_BOOST_LF                          0x18
+#define RH_RF95_LNA_BOOST_LF_DEFAULT                  0x00
+#define RH_RF95_LNA_BOOST_HF                          0x03
+#define RH_RF95_LNA_BOOST_HF_DEFAULT                  0x00
+#define RH_RF95_LNA_BOOST_HF_150PC                    0x11
 
 // RH_RF95_REG_11_IRQ_FLAGS_MASK                      0x11
 #define RH_RF95_RX_TIMEOUT_MASK                       0x80
@@ -190,19 +199,24 @@
 #define RH_RF95_FHSS_PRESENT_CHANNEL                  0x3f
 
 // RH_RF95_REG_1D_MODEM_CONFIG1                       0x1d
-#define RH_RF95_BW                                    0xc0
-#define RH_RF95_BW_125KHZ                             0x00
-#define RH_RF95_BW_250KHZ                             0x40
-#define RH_RF95_BW_500KHZ                             0x80
-#define RH_RF95_BW_RESERVED                           0xc0
-#define RH_RF95_CODING_RATE                           0x38
-#define RH_RF95_CODING_RATE_4_5                       0x00
-#define RH_RF95_CODING_RATE_4_6                       0x08
-#define RH_RF95_CODING_RATE_4_7                       0x10
-#define RH_RF95_CODING_RATE_4_8                       0x18
-#define RH_RF95_IMPLICIT_HEADER_MODE_ON               0x04
-#define RH_RF95_RX_PAYLOAD_CRC_ON                     0x02
-#define RH_RF95_LOW_DATA_RATE_OPTIMIZE                0x01
+#define RH_RF95_BW                                    0xf0
+
+#define RH_RF95_BW_7_8KHZ                             0x00
+#define RH_RF95_BW_10_4KHZ                            0x10
+#define RH_RF95_BW_15_6KHZ                            0x20
+#define RH_RF95_BW_20_8KHZ                            0x30
+#define RH_RF95_BW_31_25KHZ                           0x40
+#define RH_RF95_BW_41_7KHZ                            0x50
+#define RH_RF95_BW_62_5KHZ                            0x60
+#define RH_RF95_BW_125KHZ                             0x70
+#define RH_RF95_BW_250KHZ                             0x80
+#define RH_RF95_BW_500KHZ                             0x90
+#define RH_RF95_CODING_RATE                           0x0e
+#define RH_RF95_CODING_RATE_4_5                       0x02
+#define RH_RF95_CODING_RATE_4_6                       0x04
+#define RH_RF95_CODING_RATE_4_7                       0x06
+#define RH_RF95_CODING_RATE_4_8                       0x08
+#define RH_RF95_IMPLICIT_HEADER_MODE_ON               0x01
 
 // RH_RF95_REG_1E_MODEM_CONFIG2                       0x1e
 #define RH_RF95_SPREADING_FACTOR                      0xf0
@@ -214,8 +228,12 @@
 #define RH_RF95_SPREADING_FACTOR_2048CPS              0xb0
 #define RH_RF95_SPREADING_FACTOR_4096CPS              0xc0
 #define RH_RF95_TX_CONTINUOUS_MOE                     0x08
-#define RH_RF95_AGC_AUTO_ON                           0x04
+
+#define RH_RF95_PAYLOAD_CRC_ON                        0x04
 #define RH_RF95_SYM_TIMEOUT_MSB                       0x03
+
+// RH_RF95_REG_4B_TCXO                                0x4b
+#define RH_RF95_TCXO_TCXO_INPUT_ON                    0x10
 
 // RH_RF95_REG_4D_PA_DAC                              0x4d
 #define RH_RF95_PA_DAC_DISABLE                        0x04
@@ -459,6 +477,14 @@
 /// At 20dBm (100mW) with Bw = 125 kHz, Cr = 4/5, Sf = 128chips/symbol, CRC on. 
 /// (Default medium range) in the conditions described above.
 /// - Range over flat ground through heavy trees and vegetation approx 2km.
+///
+/// Caution: the performance of this radio, especially with narrow bandwidths is strongly dependent on the
+/// accuracy and stability of the chip clock. HopeRF and Semtech do not appear to 
+/// recommend bandwidths of less than 62.5 kHz 
+/// unless you have the optional Temperature Compensated Crystal Oscillator (TCXO) installed and 
+/// enabled on your radio module. See the refernece manual for more data.
+/// Also https://lowpowerlab.com/forum/rf-range-antennas-rfm69-library/lora-library-experiences-range/15/
+/// and http://www.semtech.com/images/datasheet/an120014-xo-guidance-lora-modulation.pdf
 /// 
 /// \par Transmitter Power
 ///
@@ -715,6 +741,15 @@ public:
     /// This is called automatically by waitCAD().
     /// \return true if channel is in use.  
     virtual bool    isChannelActive();
+
+    /// Enable TCXO mode
+    /// Call this immediately after init(), to force your radio to use an external 
+    /// frequency source, such as a Temperature Compensated Crystal Oscillator (TCXO).
+    /// See the comments in the main documentation about the sensitivity of this radio to
+    /// clock frequency especially when using narrow bandwidths.
+    /// Leaves the module in sleep mode.
+    /// Caution, this function has not been tested by us.
+    void enableTCXO();
 
 protected:
     /// This is a low level function to handle the interrupts for one instance of RH_RF95.

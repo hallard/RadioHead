@@ -1,7 +1,7 @@
 // RH_RF95.cpp
 //
 // Copyright (C) 2011 Mike McCauley
-// $Id: RH_RF95.cpp,v 1.11 2016/04/04 01:40:12 mikem Exp $
+// $Id: RH_RF95.cpp,v 1.12 2017/01/12 23:58:00 mikem Exp $
 
 #include <RH_RF95.h>
 
@@ -299,7 +299,7 @@ bool RH_RF95::send(const uint8_t* data, uint8_t len)
     setModeIdle();
 
     if (!waitCAD()) 
-    return false;  // Check channel activity
+	return false;  // Check channel activity
 
     // Position at the beginning of the FIFO
     spiWrite(RH_RF95_REG_0D_FIFO_ADDR_PTR, 0);
@@ -505,4 +505,13 @@ bool RH_RF95::isChannelActive()
         YIELD;
 
     return _cad;
+}
+
+void RH_RF95::enableTCXO()
+{
+    while ((spiRead(RH_RF95_REG_4B_TCXO) & RH_RF95_TCXO_TCXO_INPUT_ON) != RH_RF95_TCXO_TCXO_INPUT_ON)
+    {
+	sleep();
+	spiWrite(RH_RF95_REG_4B_TCXO, (spiRead(RH_RF95_REG_4B_TCXO) | RH_RF95_TCXO_TCXO_INPUT_ON));
+    } 
 }

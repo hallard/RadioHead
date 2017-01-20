@@ -9,7 +9,7 @@
 //
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2011 Mike McCauley
-// $Id: RHReliableDatagram.cpp,v 1.15 2015/12/11 01:10:24 mikem Exp $
+// $Id: RHReliableDatagram.cpp,v 1.16 2017/01/12 23:58:00 mikem Exp $
 
 #include <RHReliableDatagram.h>
 
@@ -22,6 +22,7 @@ RHReliableDatagram::RHReliableDatagram(RHGenericDriver& driver, uint8_t thisAddr
     _lastSequenceNumber = 0;
     _timeout = RH_DEFAULT_TIMEOUT;
     _retries = RH_DEFAULT_RETRIES;
+    memset(_seenIds, 0, sizeof(_seenIds));
 }
 
 ////////////////////////////////////////////////////////////////////

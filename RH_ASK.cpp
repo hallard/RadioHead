@@ -1,7 +1,7 @@
 // RH_ASK.cpp
 //
 // Copyright (C) 2014 Mike McCauley
-// $Id: RH_ASK.cpp,v 1.19 2016/08/17 01:53:21 mikem Exp mikem $
+// $Id: RH_ASK.cpp,v 1.20 2017/01/12 23:58:00 mikem Exp $
 
 #include <RH_ASK.h>
 #include <RHCRC.h>
@@ -483,7 +483,7 @@ bool RH_ASK::send(const uint8_t* data, uint8_t len)
     waitPacketSent();
 
     if (!waitCAD()) 
-    return false;  // Check channel activity
+	return false;  // Check channel activity
 
     // Encode the message length
     crc = RHcrc_ccitt_update(crc, count);

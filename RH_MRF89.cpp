@@ -1,7 +1,7 @@
 // RH_MRF89.cpp
 //
 // Copyright (C) 2015 Mike McCauley
-// $Id: RH_MRF89.cpp,v 1.7 2015/12/31 04:23:12 mikem Exp $
+// $Id: RH_MRF89.cpp,v 1.8 2017/01/12 23:58:00 mikem Exp $
 
 #include <RH_MRF89.h>
 #define BAND_915
@@ -390,10 +390,10 @@ bool RH_MRF89::send(const uint8_t* data, uint8_t len)
     
     waitPacketSent(); // Make sure we dont interrupt an outgoing message
     setModeIdle();
-
+    
     if (!waitCAD()) 
-    return false;  // Check channel activity
-   
+	return false;  // Check channel activity
+
     // First octet is the length of the chip payload
     // 0 length messages are transmitted but never trigger a receive!
     spiWriteData(len + RH_MRF89_HEADER_LEN);

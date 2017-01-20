@@ -1,7 +1,7 @@
 // RHGenericDriver.h
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2014 Mike McCauley
-// $Id: RHGenericDriver.h,v 1.17 2016/04/04 01:40:12 mikem Exp $
+// $Id: RHGenericDriver.h,v 1.18 2017/01/12 23:58:00 mikem Exp $
 
 #ifndef RHGenericDriver_h
 #define RHGenericDriver_h
@@ -52,7 +52,7 @@ public:
 	RHModeIdle,             ///< Transport is idle.
 	RHModeTx,               ///< Transport is in the process of transmitting a message.
 	RHModeRx,               ///< Transport is in the process of receiving a message.
-    RHModeCad               ///< Transport is in the process of detecting channel activity (if supported)    
+	RHModeCad               ///< Transport is in the process of detecting channel activity (if supported)
     } RHMode;
 
     /// Constructor
@@ -298,6 +298,10 @@ protected:
     volatile bool       _cad;
     unsigned int        _cad_timeout;
     
+    /// Channel activity detected
+    volatile bool       _cad;
+    unsigned int        _cad_timeout;
+
 private:
 
 };

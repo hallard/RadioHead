@@ -1,7 +1,7 @@
 // RHGenericDriver.cpp
 //
 // Copyright (C) 2014 Mike McCauley
-// $Id: RHGenericDriver.cpp,v 1.19 2015/12/11 01:10:24 mikem Exp $
+// $Id: RHGenericDriver.cpp,v 1.20 2017/01/12 23:58:00 mikem Exp $
 
 #include <RHGenericDriver.h>
 
@@ -72,7 +72,7 @@ bool RHGenericDriver::waitPacketSent(uint16_t timeout)
 bool RHGenericDriver::waitCAD()
 {
     if (!_cad_timeout)
-    return true;
+	return true;
 
     // Wait for any channel activity to finish or timeout
     // Sophisticated DCF function...
@@ -83,7 +83,7 @@ bool RHGenericDriver::waitCAD()
     while (isChannelActive())
     {
          if (millis() - t > _cad_timeout) 
-         return false;
+	     return false;
          delay(random(1, 10) * 100); // Should these values be configurable? Macros?
     }
 

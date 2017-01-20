@@ -1,7 +1,7 @@
 // RH_Serial.cpp
 //
 // Copyright (C) 2014 Mike McCauley
-// $Id: RH_Serial.cpp,v 1.12 2016/04/04 01:40:12 mikem Exp $
+// $Id: RH_Serial.cpp,v 1.13 2017/01/12 23:58:00 mikem Exp $
 
 #include <RH_Serial.h>
 #if (RH_PLATFORM == RH_PLATFORM_STM32F2)
@@ -201,7 +201,7 @@ bool RH_Serial::recv(uint8_t* buf, uint8_t* len)
 bool RH_Serial::send(const uint8_t* data, uint8_t len)
 {
     if (!waitCAD()) 
-	  return false;  // Check channel activity
+	return false;  // Check channel activity
 
     _txFcs = 0xffff;    // Initial value
     _serial.write(DLE); // Not in FCS

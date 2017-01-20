@@ -1,7 +1,7 @@
 // RH_RF24.cpp
 //
 // Copyright (C) 2011 Mike McCauley
-// $Id: RH_RF24.cpp,v 1.17 2016/08/17 01:53:21 mikem Exp mikem $
+// $Id: RH_RF24.cpp,v 1.18 2017/01/12 23:58:00 mikem Exp $
 
 #include <RH_RF24.h>
 // Generated with Silicon Labs WDS software:
@@ -348,7 +348,7 @@ bool RH_RF24::send(const uint8_t* data, uint8_t len)
     setModeIdle(); // Prevent RX while filling the fifo
 
     if (!waitCAD()) 
-    return false;  // Check channel activity
+	return false;  // Check channel activity
 
     // Put the payload in the FIFO
     // First the length in fixed length field 1. This wont appear in the receiver fifo since
