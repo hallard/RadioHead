@@ -298,10 +298,6 @@ protected:
     volatile bool       _cad;
     unsigned int        _cad_timeout;
     
-    /// Channel activity detected
-    volatile bool       _cad;
-    unsigned int        _cad_timeout;
-
 private:
 
 };
