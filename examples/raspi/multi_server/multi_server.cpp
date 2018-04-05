@@ -33,7 +33,7 @@
 
 // Our RF95 module 1 Configuration 
 #define RF95_1_NODE_ID    1
-#define RF95_1_FREQUENCY  868.00
+#define RF95_1_FREQUENCY  915.00
 
 // Our RF95 module 3 Configuration 
 #define RF95_2_NODE_ID    1
@@ -49,12 +49,13 @@ enum Mod_idx { IDX_MOD1 = 0, IDX_MOD2 = 1, IDX_MOD3 = 2 };
 
 // Modules table index
 #define NB_MODULES 3
+#define ENABLED_MODULES 1
 uint8_t IRQ_pins[NB_MODULES] = { MOD1_IRQ_PIN, MOD2_IRQ_PIN, MOD3_IRQ_PIN};
 uint8_t LED_pins[NB_MODULES] = { MOD1_LED_PIN, MOD2_LED_PIN, MOD3_LED_PIN};
 uint8_t RST_pins[NB_MODULES] = { MOD1_RST_PIN, MOD2_RST_PIN, MOD3_RST_PIN};
 uint8_t CSN_pins[NB_MODULES] = { MOD1_CS_PIN , MOD2_CS_PIN , MOD3_CS_PIN };
 
-const char * MOD_name[]      = { "1 RF95 868",     "2 RF95 433" ,    "3 RFM69HW 433"  };
+const char * MOD_name[]      = { "1 RF95 915",     "2 RF95 433" ,    "3 RFM69HW 433"  };
 float MOD_freq[NB_MODULES]   = { RF95_1_FREQUENCY, RF95_2_FREQUENCY, RF69_3_FREQUENCY };
 uint8_t MOD_id[NB_MODULES]   = { RF95_1_NODE_ID,   RF95_2_NODE_ID,   RF69_3_NODE_ID   };
 
@@ -276,14 +277,14 @@ int main (int argc, const char* argv[] )
 
   // configure all modules I/O CS pins to 1 before anything else
   // to avoid any problem with SPI sharing
-  for (uint8_t i=0 ; i<NB_MODULES; i++) {
+  for (uint8_t i=0 ; i<ENABLED_MODULES; i++) {
     // CS Ping as output and set to 1
     pinMode(CSN_pins[i], OUTPUT);
     digitalWrite(CSN_pins[i], HIGH);
   }
 
   // configure all modules I/O pins 
-  for (uint8_t i=0 ; i<NB_MODULES; i++) {
+  for (uint8_t i=0 ; i<ENABLED_MODULES; i++) {
     // configure all modules
     if (!initRadioModule(i)){
       force_exit = true;
@@ -303,7 +304,7 @@ int main (int argc, const char* argv[] )
   // ========================
   while (!force_exit) { 
     // Loop thru modules
-    for (uint8_t idx=0 ; idx<NB_MODULES ; idx++) {
+    for (uint8_t idx=0 ; idx<ENABLED_MODULES; idx++) {
       // Rising edge fired ?
       if (bcm2835_gpio_eds(IRQ_pins[idx])) {
         // Now clear the eds flag by setting it to 1
@@ -339,7 +340,7 @@ int main (int argc, const char* argv[] )
   // Light off on board LED
   digitalWrite(LED_PIN, LOW);
   // All module LEDs off, all modules CS line High
-  for (uint8_t i=0 ; i<NB_MODULES; i++) {
+  for (uint8_t i=0 ; i<ENABLED_MODULES; i++) {
     digitalWrite(LED_pins[i], LOW);
     digitalWrite(CSN_pins[i], HIGH);
   }
