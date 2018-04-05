@@ -33,7 +33,7 @@
 
 // Our RF95 module 1 Configuration 
 #define RF95_1_NODE_ID    1
-#define RF95_1_FREQUENCY  868.00
+#define RF95_1_FREQUENCY  915.00
 
 // Our RF95 module 3 Configuration 
 #define RF95_2_NODE_ID    1
