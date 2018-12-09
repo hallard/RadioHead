@@ -42,6 +42,12 @@ Clone repository
 git clone https://github.com/hallard/RadioHead
 ```
 
+To avoid system hangs/instability starting with kernel 4.14, disable all GPIO kernel interrupts by adding this line to your `/boot/config.txt`:
+```
+dtoverlay=gpio-no-irq
+```
+This works around an issue with the design of the bcm2835 library and how it handles rising/falling edge detection events, but has some downsides as well.  For more information, see [this issue][30] and [this discussion][31].
+
 **Connection and pins definition**
 
 Boards pins (Chip Select, IRQ line, Reset and LED) definition are set in the new [RadioHead/examples/raspi/RasPiBoards.h][24] file. In your code, you need to define board used and then, include the file definition like this
@@ -162,4 +168,5 @@ Like this, I can do Pull Request from [ch2i][4] to [hallard][1] to add new featu
 [24]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/RasPiBoards.h
 [25]: https://github.com/hallard/RadioHead/tree/master/examples/raspi/rf95/rf95_client.cpp
 
-
+[30]: https://github.com/raspberrypi/linux/issues/2550
+[31]: https://groups.google.com/forum/#!topic/bcm2835/Y3D1mmp6vew
